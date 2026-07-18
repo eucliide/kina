@@ -1,29 +1,43 @@
 import { Container, Section } from "@/components/layout";
-import { Badge, Button, Card } from "@/components/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  Heading,
+  Text,
+} from "@/components/primitives";
 
 function App() {
   return (
-    <Section>
-      <Container>
-        <Card>
-          <Badge>
-            Round 1
-          </Badge>
+    <main className="min-h-screen bg-slate-950">
+      <Section>
+        <Container>
+          <div className="mx-auto flex max-w-2xl items-center justify-center">
+            <Card>
+              <Badge>Round 1 • 10 minutes</Badge>
 
-          <h1 className="mt-4 text-4xl font-semibold">
-            What's your perfect weekend?
-          </h1>
+              <div className="mt-6">
+                <Heading>What's your perfect weekend?</Heading>
+              </div>
 
-          <p className="mt-3 text-text-secondary">
-            Talk naturally. No pressure.
-          </p>
+              <Text>
+                Take a few minutes to get to know your partner. Listen with
+                curiosity, ask follow-up questions, and let the conversation
+                flow naturally.
+              </Text>
 
-          <Button className="mt-6">
-            Start Conversation
-          </Button>
-        </Card>
-      </Container>
-    </Section>
+              <div className="mt-8 flex items-center justify-between">
+                <div className="text-sm text-slate-500">
+                  Partner: <span className="font-medium text-slate-300">John</span>
+                </div>
+
+                <Button>Start Conversation</Button>
+              </div>
+            </Card>
+          </div>
+        </Container>
+      </Section>
+    </main>
   );
 }
 

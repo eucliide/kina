@@ -6,13 +6,12 @@ export function Card({ children }: CardProps) {
   return (
     <div
       className="
-        rounded-xl
-        border
-        border-white/10
-        bg-surface
-        p-6
-        shadow-soft
-      "
+      rounded-2xl
+      border
+      border-slate-800
+      bg-slate-900
+      p-8
+      shadow-xl"
     >
       {children}
     </div>

@@ -6,16 +6,27 @@ body,
 
 body {
   margin: 0;
-  background: #07111f;
-  color: #f8fafc;
+
   font-family:
     Inter,
     system-ui,
     sans-serif;
+
+  background: #07111f;
+  color: #f8fafc;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
 }

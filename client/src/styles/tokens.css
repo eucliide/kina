@@ -1,22 +1,25 @@
 @theme {
-  /* Colors */
 
-  --color-background: #07111f;
-  --color-surface: #0f172a;
-  --color-surface-elevated: #172554;
+  /* Typography */
 
-  --color-primary: #4f8cff;
-  --color-primary-hover: #3b82f6;
+  --font-sans:
+    Inter,
+    system-ui,
+    sans-serif;
 
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
+  --text-display:
+    4rem;
 
-  /* Radius */
+  --text-heading:
+    2.25rem;
 
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --text-title:
+    1.5rem;
 
-  /* Motion */
+  --text-body:
+    1rem;
 
-  --duration-normal: 250ms;
+  --text-small:
+    0.875rem;
+
 }
