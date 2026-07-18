@@ -1,43 +1,22 @@
-@import "tailwindcss";
-
 @theme {
-  /* Brand */
-
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-
-  /* Background */
+  /* Colors */
 
   --color-background: #07111f;
   --color-surface: #0f172a;
   --color-surface-elevated: #172554;
 
-  /* Text */
+  --color-primary: #4f8cff;
+  --color-primary-hover: #3b82f6;
 
   --color-text-primary: #f8fafc;
   --color-text-secondary: #94a3b8;
 
-  /* Feedback */
-
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-
   /* Radius */
 
-  --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-
-  /* Shadows */
-
-  --shadow-soft: 0 10px 40px rgb(0 0 0 / 0.25);
 
   /* Motion */
 
-  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-
-  --duration-fast: 150ms;
   --duration-normal: 250ms;
 }
