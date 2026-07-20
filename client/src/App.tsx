@@ -5,7 +5,7 @@ import {
   Card,
   Heading,
   Text,
-} from "@/components/primitives";
+} from "@/components/ui";
 
 function App() {
   return (
