@@ -1,4 +1,5 @@
 import { Container } from "@/components/layout";
+import { Button } from "@/components/ui";
 
 export function Hero() {
   return (
@@ -6,10 +7,10 @@ export function Hero() {
       <div
         className="
           absolute
-          left-24
-          top-20
-          h-80
-          w-80
+          left-16
+          top-16
+          h-96
+          w-96
           rounded-full
           bg-blue-600/10
           blur-3xl
@@ -18,15 +19,19 @@ export function Hero() {
 
       <Container>
         <div className="relative max-w-2xl">
-          <p className="text-5xl font-semibold tracking-tight text-slate-50 md:text-6xl">
+          <h1 className="text-5xl font-semibold tracking-tight text-slate-50 md:text-6xl">
             Every conversation
             <br />
             starts somewhere.
-          </p>
+          </h1>
 
           <p className="mt-8 max-w-lg text-lg leading-8 text-slate-400">
             One thoughtful question is enough.
           </p>
+
+          <Button className="mt-10">
+            Join Meetup
+          </Button>
         </div>
       </Container>
     </section>

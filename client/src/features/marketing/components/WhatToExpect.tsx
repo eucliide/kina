@@ -4,7 +4,7 @@ const steps = [
   "Join with a QR code or meeting code.",
   "Choose someone you'd like to talk with.",
   "Receive one thoughtful question.",
-  "Have a conversation.",
+  "Enjoy the conversation.",
   "Connect with someone new when you're ready.",
 ];
 

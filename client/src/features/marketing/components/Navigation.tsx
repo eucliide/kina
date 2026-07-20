@@ -6,9 +6,19 @@ export function Navigation() {
     <header className="absolute inset-x-0 top-0 z-10">
       <Container>
         <nav className="flex h-20 items-center justify-between">
-          <h1 className="text-lg font-medium tracking-tight text-slate-100">
+          <a
+            href="/"
+            className="
+              text-lg
+              font-medium
+              tracking-tight
+              text-slate-100
+              transition-colors
+              hover:text-white
+            "
+          >
             Kina
-          </h1>
+          </a>
 
           <Button>
             Join Meetup
