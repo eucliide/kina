@@ -1,13 +1,15 @@
-import { Hero } from "../components/Hero";
-import { HowItWorks } from "../components/HowItWorks";
+import { Page } from "@/components/layout";
+
 import { Navigation } from "../components/Navigation";
+import { Hero } from "../components/Hero";
+import { WhatToExpect } from "../components/WhatToExpect";
 
 export function MarketingPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50">
+    <Page>
       <Navigation />
       <Hero />
-      <HowItWorks />
-    </main>
+      <WhatToExpect />
+    </Page>
   );
 }
