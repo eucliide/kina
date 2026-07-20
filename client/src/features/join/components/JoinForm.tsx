@@ -1,6 +1,17 @@
+import { useNavigate } from "react-router-dom";
+
+import { Button } from "@/components/ui";
+
 import { QRCodeButton } from "./QRCodeButton";
+import { MeetingCodeInput } from "./MeetingCodeInput";
 
 export function JoinForm() {
+  const navigate = useNavigate();
+
+  function handleContinue() {
+    navigate("/join/name");
+  }
+
   return (
     <div className="space-y-4">
 
@@ -12,18 +23,14 @@ export function JoinForm() {
         <span className="h-px flex-1 bg-white/10" />
       </div>
 
-      <input
-        placeholder="Enter meeting code"
-        className="
-          h-12 w-full rounded-xl
-          border border-white/10
-          bg-white/5
-          px-4
-          text-white
-          outline-none
-          placeholder:text-white/40
-        "
-      />
+      <MeetingCodeInput />
+
+      <Button
+        className="w-full"
+        onClick={handleContinue}
+      >
+        Continue
+      </Button>
 
     </div>
   );

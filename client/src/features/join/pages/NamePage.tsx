@@ -1,8 +1,17 @@
+import { useNavigate } from "react-router-dom";
+
 import { Container } from "@/components/layout";
 import { Heading, Text } from "@/components/ui";
-import { JoinForm } from "../components/JoinForm";
 
-export function JoinPage() {
+import { NameForm } from "../components/NameForm";
+
+export function NamePage() {
+  const navigate = useNavigate();
+
+  function handleContinue() {
+    navigate("/lobby");
+  }
+
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
 
@@ -11,19 +20,16 @@ export function JoinPage() {
         <section className="flex min-h-screen flex-col justify-center">
 
           <Heading>
-            Join a meetup
+            What's your first name?
           </Heading>
 
-
           <Text className="mt-3 max-w-md text-white/60">
-            Scan a QR code or enter a meeting code to find your meetup.
+            This is how other participants will know you during the meetup.
           </Text>
 
-
-          <div className="mt-8">
-            <JoinForm />
+          <div className="mt-8 max-w-md">
+            <NameForm onContinue={handleContinue} />
           </div>
-
 
         </section>
 

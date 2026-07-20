@@ -1,5 +1,6 @@
 import { Container } from "@/components/layout";
 import { Button } from "@/components/ui";
+import { Link } from "react-router-dom";
 
 export function Navigation() {
   return (
@@ -20,9 +21,11 @@ export function Navigation() {
             Kina
           </a>
 
-          <Button>
-            Join Meetup
-          </Button>
+          <Link to="/join">
+            <Button>
+              Join Meetup
+            </Button>
+          </Link>
         </nav>
       </Container>
     </header>
