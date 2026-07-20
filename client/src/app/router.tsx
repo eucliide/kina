@@ -5,6 +5,7 @@ import App from "@/App";
 import { JoinPage } from "@/features/join/pages/JoinPage";
 import { NamePage } from "@/features/join/pages/NamePage";
 import { LobbyPage } from "@/features/lobby/pages/LobbyPage";
+import { MeetingPage } from "@/features/meeting/pages/MeetingPage";
 
 export const router = createBrowserRouter([
   {
@@ -22,5 +23,9 @@ export const router = createBrowserRouter([
   {
     path: "/lobby",
     element: <LobbyPage />,
+  },
+  {
+    path: "/meeting",
+    element: <MeetingPage />,
   },
 ]);
