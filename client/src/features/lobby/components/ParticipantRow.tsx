@@ -17,7 +17,6 @@ export function ParticipantRow({
     <button
       type="button"
       onClick={onClick}
-      disabled={status !== "available"}
       className="
         flex
         w-full
@@ -33,6 +32,7 @@ export function ParticipantRow({
         transition-colors
         hover:bg-white/10
         disabled:cursor-default
+        disabled:opacity-60
         disabled:hover:bg-white/5
       "
     >

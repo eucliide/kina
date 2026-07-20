@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import type {
   LobbyState,
@@ -11,6 +12,8 @@ export function useLobbyState() {
 
   const [selectedParticipant, setSelectedParticipant] =
     useState("");
+
+  const navigate = useNavigate();
 
   const participants: Participant[] = [
     {
@@ -44,6 +47,14 @@ export function useLobbyState() {
     setState("received");
   }
 
+  function acceptInvitation() {
+    navigate("/meeting");
+  }
+
+  function declineInvitation() {
+    setState("available");
+  }
+
   return {
     state,
     participants,
@@ -51,6 +62,10 @@ export function useLobbyState() {
 
     sendInvitation,
     cancelInvitation,
+
     receiveInvitation,
+
+    acceptInvitation,
+    declineInvitation,
   };
 }

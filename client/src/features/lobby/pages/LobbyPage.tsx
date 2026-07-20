@@ -9,8 +9,12 @@ export function LobbyPage() {
     state,
     participants,
     selectedParticipant,
+
     sendInvitation,
     cancelInvitation,
+
+    acceptInvitation,
+    declineInvitation,
   } = useLobbyState();
 
   return (
@@ -31,6 +35,8 @@ export function LobbyPage() {
             selectedParticipant={selectedParticipant}
             sendInvitation={sendInvitation}
             cancelInvitation={cancelInvitation}
+            acceptInvitation={acceptInvitation}
+            declineInvitation={declineInvitation}
           />
         </section>
       </Container>

@@ -15,6 +15,8 @@ interface LobbyContentProps {
 
   sendInvitation: (name: string) => void;
   cancelInvitation: () => void;
+  acceptInvitation: () => void;
+  declineInvitation: () => void;
 }
 
 export function LobbyContent({
@@ -57,6 +59,8 @@ export function LobbyContent({
       return (
         <InvitationRequestCard
           participantName="John"
+          onAccept={acceptInvitation}
+          onDecline={declineInvitation}
         />
       );
 

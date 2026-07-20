@@ -2,10 +2,14 @@ import { Button, Text } from "@/components/ui";
 
 interface InvitationRequestCardProps {
   participantName: string;
+  onAccept?: () => void;
+  onDecline?: () => void;
 }
 
 export function InvitationRequestCard({
   participantName,
+  onAccept,
+  onDecline,
 }: InvitationRequestCardProps) {
   return (
     <div
@@ -33,7 +37,10 @@ export function InvitationRequestCard({
       </Text>
 
       <div className="mt-6 flex gap-3">
-        <Button className="flex-1">
+        <Button
+          className="flex-1"
+          onClick={onAccept}
+        >
           Accept
         </Button>
 
@@ -44,6 +51,7 @@ export function InvitationRequestCard({
             hover:bg-white/15
             focus:ring-white/20
           "
+          onClick={onDecline}
         >
           Decline
         </Button>
