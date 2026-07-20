@@ -1,3 +1,5 @@
+import { Text } from "@/components/ui";
+
 export function WaitingCard() {
   return (
     <div
@@ -10,37 +12,19 @@ export function WaitingCard() {
         border-white/10
         bg-white/5
         p-6
-        text-center
       "
     >
+      <div className="flex items-center gap-3">
+        <span className="h-2 w-2 rounded-full bg-emerald-400" />
 
-      <div className="
-        mx-auto
-        h-12
-        w-12
-        rounded-full
-        bg-white/10
-      " />
+        <Text className="font-medium text-white">
+          Waiting for participants
+        </Text>
+      </div>
 
-
-      <h3 className="
-        mt-5
-        text-lg
-        font-medium
-      ">
-        Waiting for others
-      </h3>
-
-
-      <p className="
-        mt-2
-        text-sm
-        text-white/50
-      ">
-        The conversation will start when everyone is ready.
-      </p>
-
-
+      <Text className="mt-3 text-sm text-white/60">
+        The meetup will begin automatically when everyone is ready.
+      </Text>
     </div>
   );
 }
