@@ -1,8 +1,10 @@
-import { PresenceDot } from "@/components/ui";
+import { PresenceDot, Text } from "@/components/ui";
+
+import type { PresenceStatus } from "../types";
 
 interface ParticipantRowProps {
   name: string;
-  status: "available" | "busy";
+  status: PresenceStatus;
   onClick?: () => void;
 }
 
@@ -15,6 +17,7 @@ export function ParticipantRow({
     <button
       type="button"
       onClick={onClick}
+      disabled={status !== "available"}
       className="
         flex
         w-full
@@ -29,9 +32,17 @@ export function ParticipantRow({
         text-left
         transition-colors
         hover:bg-white/10
+        disabled:cursor-default
+        disabled:hover:bg-white/5
       "
     >
-      <PresenceDot status={status} />
+      <PresenceDot
+        status={
+          status === "available"
+            ? "available"
+            : "busy"
+        }
+      />
 
       <div>
         <Text className="font-medium text-white">

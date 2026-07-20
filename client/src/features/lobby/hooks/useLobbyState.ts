@@ -1,10 +1,9 @@
 import { useState } from "react";
 
-export type LobbyState =
-  | "waiting"
-  | "available"
-  | "sent"
-  | "received";
+import type {
+  LobbyState,
+  Participant,
+} from "../types";
 
 export function useLobbyState() {
   const [state, setState] =
@@ -12,6 +11,24 @@ export function useLobbyState() {
 
   const [selectedParticipant, setSelectedParticipant] =
     useState("");
+
+  const participants: Participant[] = [
+    {
+      id: "1",
+      name: "Sarah",
+      status: "available",
+    },
+    {
+      id: "2",
+      name: "Kevin",
+      status: "available",
+    },
+    {
+      id: "3",
+      name: "Alice",
+      status: "inConversation",
+    },
+  ];
 
   function sendInvitation(name: string) {
     setSelectedParticipant(name);
@@ -29,6 +46,7 @@ export function useLobbyState() {
 
   return {
     state,
+    participants,
     selectedParticipant,
 
     sendInvitation,
