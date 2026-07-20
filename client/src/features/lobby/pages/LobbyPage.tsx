@@ -26,16 +26,19 @@ export function LobbyPage() {
 
             <div className="space-y-3">
 
-              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                John
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span>John</span>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                Sarah
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span>Sarah</span>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                Kevin
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span>Kevin</span>
               </div>
 
             </div>
