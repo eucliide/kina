@@ -1,5 +1,4 @@
 import { Container } from "@/components/layout";
-import { Button } from "@/components/ui";
 
 export function Hero() {
   return (
@@ -28,10 +27,6 @@ export function Hero() {
           <p className="mt-8 max-w-lg text-lg leading-8 text-slate-400">
             One thoughtful question is enough.
           </p>
-
-          <Button className="mt-10">
-            Join Meetup
-          </Button>
         </div>
       </Container>
     </section>
