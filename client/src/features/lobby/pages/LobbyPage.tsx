@@ -2,14 +2,20 @@ import { Container } from "@/components/layout";
 import { Heading, Text } from "@/components/ui";
 
 import { WaitingCard } from "../components/WaitingCard";
-import { ParticipantCard } from "../components/ParticipantCard";
+import { ParticipantRow } from "../components/ParticipantRow";
 import { InvitationSentCard } from "../components/InvitationSentCard";
 import { InvitationRequestCard } from "../components/InvitationRequestCard";
+
+type LobbyState =
+  | "waiting"
+  | "available"
+  | "sent"
+  | "received";
 
 export function LobbyPage() {
   // Temporary state for Sprint 3.6.
   // This will eventually come from Supabase Realtime.
-  const state = "available";
+  const state: LobbyState = "available";
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
@@ -24,16 +30,32 @@ export function LobbyPage() {
           {state === "waiting" && <WaitingCard />}
 
           {state === "available" && (
-            <div className="mt-10 max-w-xl space-y-4">
-              <ParticipantCard name="Sarah" />
-              <ParticipantCard name="Kevin" />
-              <ParticipantCard name="Alice" />
+            <div className="mt-10 max-w-xl space-y-3">
+              <ParticipantRow
+                  name="Sarah"
+                  status="available"
+                  onClick={() => setState("sent")}
+              />
+
+              <ParticipantRow
+                name="Kevin"
+                status="available"
+              />
+
+              <ParticipantRow
+                name="Alice"
+                status="busy"
+              />
             </div>
           )}
 
-          {state === "sent" && <InvitationSentCard />}
+          {state === "sent" && (
+            <InvitationSentCard participantName="Sarah" />
+          )}
 
-          {state === "received" && <InvitationRequestCard />}
+          {state === "received" && (
+            <InvitationRequestCard participantName="John" />
+          )}
         </section>
       </Container>
     </main>

@@ -32,3 +32,26 @@ input,
 textarea {
   font: inherit;
 }
+
+@keyframes presence {
+
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.65;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+}
+
+.animate-presence {
+  animation: presence 2.4s ease-in-out infinite;
+}

@@ -1,6 +1,14 @@
 import { Text } from "@/components/ui";
 
-export function InvitationSentCard() {
+interface InvitationSentCardProps {
+  participantName: string;
+  onCancel?: () => void;
+}
+
+export function InvitationSentCard({
+  participantName,
+  onCancel,
+}: InvitationSentCardProps) {
   return (
     <div
       className="
@@ -23,8 +31,22 @@ export function InvitationSentCard() {
       </div>
 
       <Text className="mt-3 text-sm text-white/60">
-        Waiting for the participant to accept your invitation.
+        Waiting for {participantName} to respond.
       </Text>
+
+      <button
+        type="button"
+        onClick={onCancel}
+        className="
+          mt-6
+          text-sm
+          text-white/40
+          transition-colors
+          hover:text-white/70
+        "
+      >
+        Cancel request
+      </button>
     </div>
   );
 }
