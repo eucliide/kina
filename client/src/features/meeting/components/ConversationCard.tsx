@@ -16,15 +16,29 @@ export function ConversationCard({
         border
         border-white/10
         bg-white/5
-        p-14
+        p-12
         backdrop-blur
       "
     >
-      <Text className="uppercase tracking-[0.2em] text-white/40">
+      <Text
+        className="
+          text-sm
+          uppercase
+          tracking-[0.2em]
+          text-white/40
+        "
+      >
         Round {round}
       </Text>
 
-      <Text className="mt-8 text-4xl leading-relaxed text-white">
+      <Text
+        className="
+          mt-8
+          text-3xl
+          leading-relaxed
+          text-white
+        "
+      >
         {question}
       </Text>
     </section>

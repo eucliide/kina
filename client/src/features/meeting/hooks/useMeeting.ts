@@ -1,47 +1,61 @@
 import { useEffect, useState } from "react";
- import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
- const ROUND_DURATION = 8 * 60;
+import { QUESTIONS } from "../data/questions";
 
- export function useMeeting() {
-   const navigate = useNavigate();
+const ROUND_DURATION = 8 * 60;
 
-   const [remainingSeconds, setRemainingSeconds] =
-     useState(ROUND_DURATION);
+export function useMeeting() {
+  const navigate = useNavigate();
 
-   useEffect(() => {
-     const timer = window.setInterval(() => {
-       setRemainingSeconds((seconds) => {
-         if (seconds <= 1) {
-           clearInterval(timer);
+  const [round, setRound] = useState(1);
 
-           navigate("/reflection");
+  const [remainingSeconds, setRemainingSeconds] =
+    useState(ROUND_DURATION);
 
-           return 0;
-         }
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setRemainingSeconds((seconds) => {
+        if (seconds > 1) {
+          return seconds - 1;
+        }
 
-         return seconds - 1;
-       });
-     }, 1000);
+        if (round < 3) {
+          setRound((currentRound) => currentRound + 1);
 
-     return () => clearInterval(timer);
-   }, [navigate]);
+          return ROUND_DURATION;
+        }
 
-   const minutes = Math.floor(remainingSeconds / 60);
+        clearInterval(interval);
 
-   const seconds = remainingSeconds % 60;
+        navigate("/reflection");
 
-   return {
-     partner: "Sarah",
+        return 0;
+      });
+    }, 1000);
 
-     round: 1,
+    return () => clearInterval(interval);
+  }, [round, navigate]);
 
-     question:
-       "What's a small moment in your life that still makes you smile?",
+  const minutes = Math.floor(
+    remainingSeconds / 60,
+  );
 
-     remainingTime:
-       `${minutes}:${seconds
-         .toString()
-         .padStart(2, "0")}`,
-   };
- }
+  const seconds = remainingSeconds % 60;
+
+  return {
+    partner: {
+      id: "1",
+      name: "Sarah",
+    },
+
+    round,
+
+    question: QUESTIONS[round - 1],
+
+    remainingTime:
+      `${minutes}:${seconds
+        .toString()
+        .padStart(2, "0")}`,
+  };
+}
