@@ -48,7 +48,20 @@ export function useLobbyState() {
   }
 
   function acceptInvitation() {
-    navigate("/meeting");
+      const session = {
+          meetingId: crypto.randomUUID(),
+
+          participant: {
+              id: "1",
+              name: "John",
+          },
+
+          startedAt: new Date(),
+      };
+
+      navigate("/meeting", {
+          state: session,
+      });
   }
 
   function declineInvitation() {
@@ -58,7 +71,7 @@ export function useLobbyState() {
   return {
     state,
     setState,
-    
+
     participants,
     selectedParticipant,
 
