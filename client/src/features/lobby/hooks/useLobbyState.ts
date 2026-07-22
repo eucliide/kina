@@ -57,6 +57,8 @@ export function useLobbyState() {
 
   return {
     state,
+    setState,
+    
     participants,
     selectedParticipant,
 

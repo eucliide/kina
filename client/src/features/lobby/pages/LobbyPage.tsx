@@ -1,12 +1,14 @@
 import { Container } from "@/components/layout";
 import { Heading, Text } from "@/components/ui";
 
+import { LobbyDebugPanel } from "../components/LobbyDebugPanel";
 import { LobbyContent } from "../components/LobbyContent";
 import { useLobbyState } from "../hooks/useLobbyState";
 
 export function LobbyPage() {
   const {
     state,
+    setState,
     participants,
     selectedParticipant,
 
@@ -40,6 +42,7 @@ export function LobbyPage() {
           />
         </section>
       </Container>
+      <LobbyDebugPanel setState={setState} />
     </main>
   );
 }
