@@ -1,5 +1,6 @@
 import { Container } from "@/components/layout";
 
+import { ReflectionCard } from "../components/ReflectionCard";
 import {
   ConversationCard,
   MeetingHeader,
@@ -12,6 +13,7 @@ export function MeetingPage() {
   const {
     partner,
     round,
+    phase,
     question,
     remainingTime,
   } = useMeeting();
@@ -33,10 +35,18 @@ export function MeetingPage() {
             partnerName={partner.name}
           />
 
-          <ConversationCard
-            round={round}
-            question={question.text}
-          />
+          {
+            phase === "conversation" ? (
+              <ConversationCard
+                round={round}
+                question={question.text}
+              />
+            ) : (
+              <ReflectionCard
+                remainingTime={remainingTime}
+              />
+            )
+          }
 
           <MeetingTimer
             time={remainingTime}
