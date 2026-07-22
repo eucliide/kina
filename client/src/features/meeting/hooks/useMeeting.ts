@@ -31,18 +31,19 @@ export function useMeeting() {
   useEffect(() => {
     const interval = window.setInterval(() => {
       setRemainingSeconds((currentSeconds) => {
+        // Countdown
         if (currentSeconds > 1) {
           return currentSeconds - 1;
         }
 
-        // Conversation finished
+        // Conversation finished → Reflection
         if (phase === "conversation") {
           setPhase("reflection");
 
           return REFLECTION_DURATION;
         }
 
-        // Reflection finished
+        // Reflection finished → Next Round
         if (round < TOTAL_ROUNDS) {
           setRound((currentRound) => currentRound + 1);
 
@@ -51,6 +52,7 @@ export function useMeeting() {
           return CONVERSATION_DURATION;
         }
 
+        // Session complete
         clearInterval(interval);
 
         navigate("/reflection");
@@ -61,6 +63,15 @@ export function useMeeting() {
 
     return () => clearInterval(interval);
   }, [phase, round, navigate]);
+
+  useEffect(() => {
+    if (
+      remainingSeconds === 60 ||
+      remainingSeconds === 10
+    ) {
+      console.log("Beep");
+    }
+  }, [remainingSeconds]);
 
   const minutes = Math.floor(
     remainingSeconds / 60,
@@ -76,6 +87,8 @@ export function useMeeting() {
     round,
 
     question: QUESTIONS[round - 1],
+
+    remainingSeconds,
 
     remainingTime: `${minutes}:${seconds
       .toString()

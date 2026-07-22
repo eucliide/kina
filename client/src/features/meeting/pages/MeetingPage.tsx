@@ -1,10 +1,10 @@
 import { Container } from "@/components/layout";
 
-import { ReflectionCard } from "../components/ReflectionCard";
 import {
   ConversationCard,
   MeetingHeader,
   MeetingTimer,
+  ReflectionCard,
 } from "../components";
 
 import { useMeeting } from "../hooks/useMeeting";
@@ -12,10 +12,11 @@ import { useMeeting } from "../hooks/useMeeting";
 export function MeetingPage() {
   const {
     partner,
-    round,
     phase,
+    round,
     question,
     remainingTime,
+    remainingSeconds,
   } = useMeeting();
 
   return (
@@ -35,21 +36,20 @@ export function MeetingPage() {
             partnerName={partner.name}
           />
 
-          {
-            phase === "conversation" ? (
-              <ConversationCard
-                round={round}
-                question={question.text}
-              />
-            ) : (
-              <ReflectionCard
-                remainingTime={remainingTime}
-              />
-            )
-          }
+          {phase === "conversation" ? (
+            <ConversationCard
+              round={round}
+              question={question.text}
+            />
+          ) : (
+            <ReflectionCard
+              remainingTime={remainingTime}
+            />
+          )}
 
           <MeetingTimer
             time={remainingTime}
+            remainingSeconds={remainingSeconds}
           />
         </section>
       </Container>
