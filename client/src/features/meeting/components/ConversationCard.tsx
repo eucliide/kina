@@ -1,37 +1,32 @@
-import { Button } from "@/components/ui";
+import { Text } from "@/components/ui";
 
-type ConversationCardProps = {
-  question?: string;
-};
+interface ConversationCardProps {
+  round: number;
+  question: string;
+}
 
 export function ConversationCard({
-  question = "What is something you've always wanted to learn?",
+  round,
+  question,
 }: ConversationCardProps) {
   return (
-    <div
+    <section
       className="
         rounded-3xl
         border
         border-white/10
         bg-white/5
-        p-8
+        p-10
+        backdrop-blur
       "
     >
-      <p className="text-sm uppercase tracking-[0.2em] text-white/40">
-        Conversation
-      </p>
+      <Text className="uppercase tracking-[0.2em] text-white/40">
+        Round {round}
+      </Text>
 
-      <h2 className="mt-6 text-3xl font-semibold leading-tight">
+      <Text className="mt-8 text-3xl leading-relaxed text-white">
         {question}
-      </h2>
-
-      <p className="mt-8 text-sm text-white/50">
-        02:30 remaining
-      </p>
-
-      <Button className="mt-8 w-full">
-        Start Conversation
-      </Button>
-    </div>
+      </Text>
+    </section>
   );
 }

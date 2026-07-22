@@ -1,28 +1,39 @@
 import { Container } from "@/components/layout";
-import { Heading, Text } from "@/components/ui";
 
+import { MeetingHeader } from "../components/MeetingHeader";
 import { ConversationCard } from "../components/ConversationCard";
+import { MeetingTimer } from "../components/MeetingTimer";
+
+import { useMeeting } from "../hooks/useMeeting";
 
 export function MeetingPage() {
+  const {
+    partner,
+    round,
+    question,
+    remainingTime,
+  } = useMeeting();
+
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
-        <section className="flex min-h-screen items-center justify-center">
-          <div className="w-full max-w-2xl">
+        <section className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center">
 
-            <Heading>
-              Round 1
-            </Heading>
+          <MeetingHeader
+            partnerName={partner}
+          />
 
-            <Text className="mt-3 text-white/60">
-              Find your partner and enjoy the conversation.
-            </Text>
+          <ConversationCard
+            round={round}
+            question={question}
+          />
 
-            <div className="mt-10">
-              <ConversationCard />
-            </div>
-
+          <div className="mt-10">
+            <MeetingTimer
+              time={remainingTime}
+            />
           </div>
+
         </section>
       </Container>
     </main>
