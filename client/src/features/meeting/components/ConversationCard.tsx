@@ -16,7 +16,7 @@ export function ConversationCard({
         border
         border-white/10
         bg-white/5
-        p-10
+        p-14
         backdrop-blur
       "
     >
@@ -24,7 +24,7 @@ export function ConversationCard({
         Round {round}
       </Text>
 
-      <Text className="mt-8 text-3xl leading-relaxed text-white">
+      <Text className="mt-8 text-4xl leading-relaxed text-white">
         {question}
       </Text>
     </section>

@@ -8,8 +8,14 @@ export function MeetingTimer({
   time,
 }: MeetingTimerProps) {
   return (
-    <Text className="text-center text-xl font-medium text-white/80">
-      {time}
-    </Text>
+    <div className="mt-10 text-center">
+      <Text className="text-sm uppercase tracking-[0.25em] text-white/40">
+        Time Remaining
+      </Text>
+
+      <Text className="mt-2 text-5xl font-light">
+        {time}
+      </Text>
+    </div>
   );
 }
