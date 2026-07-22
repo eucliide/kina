@@ -1,3 +1,8 @@
+export type MeetingPhase =
+  | "conversation"
+  | "reflection"
+  | "complete";
+
 export interface MeetingSession {
   meetingId: string;
 
@@ -5,6 +10,10 @@ export interface MeetingSession {
     id: string;
     name: string;
   };
+
+  round: number;
+
+  phase: MeetingPhase;
 
   startedAt: Date;
 }
