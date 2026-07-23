@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { createSession } from "@/features/meeting/services/meetingSession";
 import type {
   LobbyState,
   Participant,
@@ -35,7 +35,13 @@ export function useLobbyState() {
 
   function sendInvitation(name: string) {
     setSelectedParticipant(name);
-    setState("sent");
+
+    createSession({
+      id: crypto.randomUUID(),
+      name,
+    });
+
+    navigate("/meeting");
   }
 
   function cancelInvitation() {

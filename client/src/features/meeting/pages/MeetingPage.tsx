@@ -17,6 +17,10 @@ export function MeetingPage() {
     remainingSeconds,
   } = useMeeting();
 
+if (!session) {
+  return null;
+}
+
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>

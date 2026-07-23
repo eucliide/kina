@@ -1,9 +1,21 @@
 import { useNavigate } from "react-router-dom";
 
 import { PROMPTS } from "../data/prompts";
+import {
+  clearSession,
+  getSession,
+} from "@/features/meeting/services/meetingSession";
 
 export function useReflection() {
   const navigate = useNavigate();
+
+  const session = getSession();
+
+  if (!session) {
+    throw new Error(
+      "No completed meeting session.",
+    );
+  }
 
   const prompt =
     PROMPTS[
@@ -13,11 +25,14 @@ export function useReflection() {
     ];
 
   function continueToLobby() {
+    clearSession();
+
     navigate("/lobby");
   }
 
   return {
-    partnerName: "Sarah",
+    partnerName:
+      session.participant.name,
     prompt,
     continueToLobby,
   };
