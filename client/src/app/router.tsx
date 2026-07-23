@@ -6,6 +6,7 @@ import { JoinPage } from "@/features/join/pages/JoinPage";
 import { NamePage } from "@/features/join/pages/NamePage";
 import { LobbyPage } from "@/features/lobby/pages/LobbyPage";
 import { MeetingPage } from "@/features/meeting/pages/MeetingPage";
+import { ReflectionPage } from "@/features/reflection/pages/ReflectionPage";
 
 export const router = createBrowserRouter([
   {
@@ -27,5 +28,9 @@ export const router = createBrowserRouter([
   {
     path: "/meeting",
     element: <MeetingPage />,
+  },
+  {
+    path: "/reflection",
+    element: <ReflectionPage />,
   },
 ]);
