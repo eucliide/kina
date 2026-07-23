@@ -16,4 +16,6 @@ export interface MeetingSession {
   phase: MeetingPhase;
 
   startedAt: Date;
+
+  questionIndex: number;
 }

@@ -6,6 +6,7 @@ import type {
   Participant,
 } from "../types";
 
+
 export function useLobbyState() {
   const [state, setState] =
     useState<LobbyState>("available");
@@ -33,16 +34,16 @@ export function useLobbyState() {
     },
   ];
 
-  function sendInvitation(name: string) {
-    setSelectedParticipant(name);
+ function sendInvitation(name: string) {
+   setSelectedParticipant(name);
 
-    createSession({
-      id: crypto.randomUUID(),
-      name,
-    });
+   createSession({
+     id: crypto.randomUUID(),
+     name,
+   });
 
-    navigate("/meeting");
-  }
+   setState("sent");
+ }
 
   function cancelInvitation() {
     setSelectedParticipant("");
@@ -54,20 +55,7 @@ export function useLobbyState() {
   }
 
   function acceptInvitation() {
-      const session = {
-          meetingId: crypto.randomUUID(),
-
-          participant: {
-              id: "1",
-              name: "John",
-          },
-
-          startedAt: new Date(),
-      };
-
-      navigate("/meeting", {
-          state: session,
-      });
+    navigate("/meeting");
   }
 
   function declineInvitation() {
