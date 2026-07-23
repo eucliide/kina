@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { meetingSession } from "../data/session";
 
 import { QUESTIONS } from "../data/questions";
 
@@ -15,10 +16,8 @@ const TOTAL_ROUNDS = 3;
 export function useMeeting() {
   const navigate = useNavigate();
 
-  const [partner] = useState<MeetingParticipant>({
-    id: "1",
-    name: "Sarah",
-  });
+  const [session, setSession] =
+    useState(meetingSession);
 
   const [round, setRound] = useState(1);
 
@@ -38,14 +37,24 @@ export function useMeeting() {
 
         // Conversation finished → Reflection
         if (phase === "conversation") {
-          setPhase("reflection");
+          setSession((current) => ({
+            ...current,
+
+            phase: "reflection",
+          }));
 
           return REFLECTION_DURATION;
         }
 
         // Reflection finished → Next Round
         if (round < TOTAL_ROUNDS) {
-          setRound((currentRound) => currentRound + 1);
+          setSession((current) => ({
+            ...current,
+
+            round: current.round + 1,
+
+            phase: "conversation",
+          }));
 
           setPhase("conversation");
 
@@ -54,6 +63,12 @@ export function useMeeting() {
 
         // Session complete
         clearInterval(interval);
+
+        setSession((current) => ({
+          ...current,
+
+          phase: "complete",
+        }));
 
         navigate("/reflection");
 
@@ -80,11 +95,7 @@ export function useMeeting() {
   const seconds = remainingSeconds % 60;
 
   return {
-    partner,
-
-    phase,
-
-    round,
+    session,
 
     question: QUESTIONS[round - 1],
 

@@ -11,9 +11,7 @@ import { useMeeting } from "../hooks/useMeeting";
 
 export function MeetingPage() {
   const {
-    partner,
-    phase,
-    round,
+    session,
     question,
     remainingTime,
     remainingSeconds,
@@ -33,12 +31,12 @@ export function MeetingPage() {
           "
         >
           <MeetingHeader
-            partnerName={partner.name}
+            partnerName={session.participant.name}
           />
 
-          {phase === "conversation" ? (
+          {session.phase === "conversation" ? (
             <ConversationCard
-              round={round}
+              round={session.round}
               question={question.text}
             />
           ) : (
