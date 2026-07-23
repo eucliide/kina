@@ -25,28 +25,30 @@ export function ConversationCard({
     >
       <Text
         className="
-          text-sm
+          text-xs
           uppercase
-          tracking-[0.2em]
-          text-white/40
+          tracking-[0.30em]
+          text-white/45
         "
       >
-      <RoundIndicator
-        round={round}
-      />
-        Round {round}
+        ROUND {round} OF 2
       </Text>
 
-      <Text
-        className="
-          mt-8
-          text-3xl
-          leading-relaxed
-          text-white
-        "
+      <div
+        key={round}
+        className="fade-up"
       >
-        {question}
-      </Text>
+        <Text
+          className="
+            mt-8
+            text-3xl
+            leading-relaxed
+            text-white
+          "
+        >
+          {question}
+        </Text>
+      </div>
     </section>
   );
 }

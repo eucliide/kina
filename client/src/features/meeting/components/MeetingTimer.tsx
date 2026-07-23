@@ -9,12 +9,11 @@ export function MeetingTimer({
   time,
   remainingSeconds,
 }: MeetingTimerProps) {
-  const timerColor =
-    remainingSeconds <= 10
-      ? "text-red-400"
-      : remainingSeconds <= 60
-      ? "text-amber-300"
-      : "text-white";
+  const warning =
+    remainingSeconds <= 60;
+
+  const critical =
+    remainingSeconds <= 10;
 
   return (
     <div className="mt-10 text-center">
@@ -29,11 +28,33 @@ export function MeetingTimer({
         Time Remaining
       </Text>
 
-      <Text
-        className={`mt-2 text-5xl font-light ${timerColor}`}
+      <div
+        className={`
+          mt-2
+          transition-transform
+          duration-300
+          ${
+            critical
+              ? "scale-[1.02]"
+              : ""
+          }
+        `}
       >
-        {time}
-      </Text>
+        <Text
+          className={`
+            text-5xl
+            transition-all
+            duration-300
+            ${
+              warning
+                ? "font-normal text-white/95"
+                : "font-light text-white"
+            }
+          `}
+        >
+          {time}
+        </Text>
+      </div>
     </div>
   );
 }

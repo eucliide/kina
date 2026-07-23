@@ -35,14 +35,12 @@ export function useLobbyState() {
   ];
 
  function sendInvitation(name: string) {
-   setSelectedParticipant(name);
-
    createSession({
      id: crypto.randomUUID(),
      name,
    });
 
-   setState("sent");
+   navigate("/meeting");
  }
 
   function cancelInvitation() {
