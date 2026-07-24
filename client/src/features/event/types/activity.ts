@@ -1,6 +1,6 @@
 /**
  * Represents one activity
- * inside a Ki event.
+ * within a Ki event.
  */
 export interface Activity {
   id: string;
@@ -10,29 +10,46 @@ export interface Activity {
    */
   name: string;
 
-  /**
-   * Internal type.
-   */
   type: ActivityType;
 
   /**
-   * Number of partner rotations.
-   *
-   * Whole-group activities
-   * simply use 1.
+   * Pairs or whole group.
    */
-  rotations: number;
+  format: ActivityFormat;
 
   /**
-   * Duration of one rotation,
-   * in seconds.
+   * Number of different partners
+   * during this activity.
    */
+  partnerRotations: number;
+
+  /**
+   * Ordered conversation stages.
+   */
+  stages: ActivityStage[];
+}
+
+/**
+ * One stage inside an activity.
+ *
+ * Every participant experiences
+ * these stages together before
+ * moving to the next partner.
+ */
+export interface ActivityStage {
+  id: string;
+
+  title: string;
+
   durationSeconds: number;
 }
 
-export type ActivityType =
-  | "conversation"
-  | "sharedReflection"
-  | "groupDiscussion"
-  | "missionReveal";
+export type ActivityFormat =
+  | "pairs"
+  | "group";
 
+export type ActivityType =
+  | "conversationJourney"
+  | "sharedReflections"
+  | "aroundTheCircle"
+  | "missionReveal";
