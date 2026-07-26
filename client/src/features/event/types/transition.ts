@@ -1,34 +1,45 @@
 /**
- * Represents a visual transition
- * shown between event states.
+ * Represents a reusable transition
+ * between two moments in a Ki event.
  */
 export interface Transition {
   id: string;
 
+  /**
+   * Display name.
+   */
   name: string;
 
-  steps: TransitionStep[];
+  /**
+   * Ordered scenes.
+   */
+  scenes: TransitionScene[];
 }
 
 /**
- * One step inside a transition.
+ * One visual scene within
+ * a transition.
  */
-export interface TransitionStep {
+export interface TransitionScene {
   id: string;
 
-  type: TransitionStepType;
+  /**
+   * Scene type understood
+   * by the UI.
+   */
+  type: TransitionSceneType;
 
   /**
-   * Duration in milliseconds.
+   * Minimum time this scene
+   * remains visible.
    */
   durationMs: number;
 }
 
-export type TransitionStepType =
+export type TransitionSceneType =
   | "fadeOut"
-  | "envelopeAppear"
-  | "envelopeOpen"
-  | "passportStamp"
-  | "messageReveal"
+  | "envelope"
+  | "passport"
+  | "hostMessage"
   | "partnerReveal"
   | "fadeIn";
