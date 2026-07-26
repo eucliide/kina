@@ -1,74 +1,55 @@
-/**
- * Event Controller
- *
- * Responsible for orchestrating the
- * entire Ki event.
- *
- * NOTE:
- * This controller contains NO React code.
- * It only describes business actions.
- */
+import type { Event } from "../types/event";
+import type { Activity } from "../types/activity";
 
+import { getNextActivity } from "./activityService";
 import {
-  getEventState,
-  setEventState,
-} from "./eventState";
+  getNextStage,
+  isFinalStage,
+} from "./activityProgressionService";
 
 /**
- * Starts an activity.
- *
- * Future:
- * - Store selected activity
- * - Notify participants
- * * Trigger transition animation
+ * Coordinates progression through
+ * the entire Ki event.
  */
-export function startActivity() {
-  setEventState("transition");
-}
+export function advanceEvent(
+  event: Event,
+  activity: Activity,
+  currentStageId: string,
+) {
+  // 1. Continue within the current partner.
+  if (!isFinalStage(activity, currentStageId)) {
+    return {
+      action: "nextStage",
+      stage: getNextStage(
+        activity,
+        currentStageId,
+      ),
+    };
+  }
 
-/**
- * Called once the transition
- * animation has finished.
- */
-export function beginMeeting() {
-  setEventState("meeting");
-}
+  // 2. Finished with this partner.
+  if (
+    event.rotation <
+    activity.partnerRotations
+  ) {
+    return {
+      action: "rotatePartner",
+    };
+  }
 
-/**
- * Ends the active meeting.
- */
-export function finishMeeting() {
-  setEventState("reflection");
-}
+  // 3. Finished the activity.
+  const nextActivity =
+    getNextActivity(activity.id);
 
-/**
- * Reflection finished.
- *
- * Future:
- * - Rotate participants
- * - Return to lobby
- */
-export function finishReflection() {
-  setEventState("rotation");
-}
+  if (nextActivity) {
+    return {
+      action: "nextActivity",
+      activity: nextActivity,
+    };
+  }
 
-/**
- * Rotation complete.
- */
-export function finishRotation() {
-  setEventState("lobby");
-}
-
-/**
- * Ends the entire event.
- */
-export function endEvent() {
-  setEventState("finished");
-}
-
-/**
- * Convenience helper.
- */
-export function currentState() {
-  return getEventState();
+  // 4. Entire evening complete.
+  return {
+    action: "finishEvent",
+  };
 }
