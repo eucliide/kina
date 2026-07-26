@@ -1,14 +1,15 @@
 import type { Transition } from "../types/transition";
 
 /**
- * Standard partner transition.
+ * Default transition shown
+ * between partner conversations.
  */
 export const PARTNER_TRANSITION: Transition = {
   id: "partner-transition",
 
   name: "Partner Transition",
 
-  steps: [
+  scenes: [
     {
       id: "fade-out",
       type: "fadeOut",
@@ -17,32 +18,20 @@ export const PARTNER_TRANSITION: Transition = {
 
     {
       id: "envelope",
-      type: "envelopeAppear",
-      durationMs: 700,
-    },
-
-    {
-      id: "open",
-      type: "envelopeOpen",
-      durationMs: 900,
+      type: "envelope",
+      durationMs: 1400,
     },
 
     {
       id: "passport",
-      type: "passportStamp",
-      durationMs: 800,
-    },
-
-    {
-      id: "message",
-      type: "messageReveal",
-      durationMs: 1200,
+      type: "passport",
+      durationMs: 1500,
     },
 
     {
       id: "partner",
       type: "partnerReveal",
-      durationMs: 1500,
+      durationMs: 1800,
     },
 
     {
