@@ -1,4 +1,5 @@
 import { Container } from "@/components/layout";
+import { Passport } from "@/features/transition/components";
 
 import {
   ConversationCard,
@@ -55,6 +56,10 @@ if (!session) {
           />
         </section>
       </Container>
+      <Passport
+        partnerName="Kevin"
+        activityName="Conversation Journey"
+      />
     </main>
   );
 }
