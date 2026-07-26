@@ -1,36 +1,53 @@
 import type {
   Transition,
-  TransitionStep,
+  TransitionScene,
 } from "../types/transition";
 
 /**
- * Returns the first step
- * of a transition.
+ * Returns the first scene
+ * in a transition.
  */
-export function getFirstTransitionStep(
+export function getFirstScene(
   transition: Transition,
-): TransitionStep {
-  return transition.steps[0];
+): TransitionScene {
+  return transition.scenes[0];
 }
 
 /**
- * Returns the next step
- * in the transition.
+ * Returns the next scene.
  */
-export function getNextTransitionStep(
+export function getNextScene(
   transition: Transition,
-  currentStepId: string,
-): TransitionStep | null {
-  const index = transition.steps.findIndex(
-    (step) => step.id === currentStepId,
-  );
+  currentSceneId: string,
+): TransitionScene | null {
+  const currentIndex =
+    transition.scenes.findIndex(
+      (scene) =>
+        scene.id === currentSceneId,
+    );
 
-  if (index === -1) {
+  if (currentIndex === -1) {
     return null;
   }
 
   return (
-    transition.steps[index + 1] ??
+    transition.scenes[currentIndex + 1] ??
     null
+  );
+}
+
+/**
+ * Determines whether the
+ * current scene is the last.
+ */
+export function isFinalScene(
+  transition: Transition,
+  currentSceneId: string,
+): boolean {
+  return (
+    getNextScene(
+      transition,
+      currentSceneId,
+    ) === null
   );
 }
