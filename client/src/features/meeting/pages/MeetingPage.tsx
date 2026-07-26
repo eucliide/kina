@@ -1,5 +1,4 @@
 import { Container } from "@/components/layout";
-import { Passport } from "@/features/transition/components";
 
 import {
   ConversationCard,
@@ -49,17 +48,12 @@ if (!session) {
               remainingTime={remainingTime}
             />
           )}
-
           <MeetingTimer
             time={remainingTime}
             remainingSeconds={remainingSeconds}
           />
         </section>
       </Container>
-      <Passport
-        partnerName="Kevin"
-        activityName="Conversation Journey"
-      />
     </main>
   );
 }
