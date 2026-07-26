@@ -6,34 +6,106 @@ import type { Activity } from "../types/activity";
  */
 export const ACTIVITIES: Activity[] = [
   {
-    id: "conversation-journey-1",
+    id: "conversation-journey",
+
     name: "Conversation Journey",
-    type: "conversation",
-    rotations: 3,
-    durationSeconds: 15 * 60,
+
+    type: "conversationJourney",
+
+    format: "pairs",
+
+    partnerRotations: 4,
+
+    chapters: [
+      {
+        id: "getting-comfortable",
+        title: "Getting Comfortable",
+        durationSeconds: 450,
+      },
+
+      {
+        id: "sharing-stories",
+        title: "Sharing Stories",
+        durationSeconds: 450,
+      },
+    ],
   },
 
   {
     id: "shared-reflections",
+
     name: "Shared Reflections",
-    type: "sharedReflection",
-    rotations: 1,
-    durationSeconds: 15 * 60,
+
+    type: "sharedReflections",
+
+    format: "pairs",
+
+    partnerRotations: 1,
+
+    chapters: [
+      {
+        id: "perception",
+        title: "Perception",
+        durationSeconds: 180,
+      },
+
+      {
+        id: "connection",
+        title: "Connection",
+        durationSeconds: 180,
+      },
+
+      {
+        id: "reflection",
+        title: "Reflection",
+        durationSeconds: 180,
+      },
+
+      {
+        id: "gratitude",
+        title: "Gratitude",
+        durationSeconds: 180,
+      },
+    ],
   },
 
   {
     id: "around-the-circle",
+
     name: "Around the Circle",
-    type: "groupDiscussion",
-    rotations: 1,
-    durationSeconds: 15 * 60,
+
+    type: "aroundTheCircle",
+
+    format: "group",
+
+    partnerRotations: 1,
+
+    chapters: [
+      {
+        id: "group-discussion",
+        title: "Group Discussion",
+        durationSeconds: 900,
+      },
+    ],
   },
 
   {
     id: "mission-reveal",
+
     name: "Mission Reveal",
+
     type: "missionReveal",
-    rotations: 1,
-    durationSeconds: 10 * 60,
+
+    format: "group",
+
+    partnerRotations: 1,
+
+    chapters: [
+      {
+        id: "mission-reveal",
+        title: "Mission Reveal",
+        durationSeconds: 600,
+      },
+    ],
   },
 ];
