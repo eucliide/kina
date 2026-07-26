@@ -26,9 +26,9 @@ export interface Event {
   stage: EventStage;
 
   /**
-   * Number of completed rotations.
+   * Current activity.
    */
-  rotation: number;
+  currentActivityId: string;
 
   createdAt: Date;
 }
