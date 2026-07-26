@@ -42,7 +42,7 @@ export interface EventControllerResult {
 export function advanceEvent(
   event: Event,
   activity: Activity,
-  currentStageId: string,
+  session: ActivitySession,
 ): EventControllerResult {
   // Continue within the current partner.
   if (!isFinalStage(activity, currentStageId)) {
@@ -50,7 +50,7 @@ export function advanceEvent(
       action: "nextStage",
       stage: getNextStage(
         activity,
-        currentStageId,
+        session.currentStageId,
       ),
     };
   }
@@ -58,7 +58,7 @@ export function advanceEvent(
   // Finished all stages with this partner.
   // Rotate if more partner rotations remain.
   if (
-    event.rotation <
+    session.currentPartnerRotation <
     activity.partnerRotations
   ) {
     return {
