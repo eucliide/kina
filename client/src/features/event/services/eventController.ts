@@ -1,5 +1,9 @@
 import type { Event } from "../types/event";
-import type { Activity } from "../types/activity";
+import type {
+  Activity,
+  ActivityStage,
+} from "../types/activity";
+import type { EventAction } from "../types/eventAction";
 
 import { getNextActivity } from "./activityService";
 import {
@@ -7,16 +11,40 @@ import {
   isFinalStage,
 } from "./activityProgressionService";
 
+export interface EventControllerResult {
+  /**
+   * Next action the application
+   * should perform.
+   */
+  action: EventAction;
+
+  /**
+   * Next stage within the current
+   * activity, if applicable.
+   */
+  stage?: ActivityStage;
+
+  /**
+   * Next activity in the event,
+   * if the current one has finished.
+   */
+  activity?: Activity;
+}
+
 /**
  * Coordinates progression through
- * the entire Ki event.
+ * the current Ki event.
+ *
+ * This controller contains business
+ * decisions only. It does not
+ * navigate, animate, or update UI.
  */
 export function advanceEvent(
   event: Event,
   activity: Activity,
   currentStageId: string,
-) {
-  // 1. Continue within the current partner.
+): EventControllerResult {
+  // Continue within the current partner.
   if (!isFinalStage(activity, currentStageId)) {
     return {
       action: "nextStage",
@@ -27,7 +55,8 @@ export function advanceEvent(
     };
   }
 
-  // 2. Finished with this partner.
+  // Finished all stages with this partner.
+  // Rotate if more partner rotations remain.
   if (
     event.rotation <
     activity.partnerRotations
@@ -37,7 +66,7 @@ export function advanceEvent(
     };
   }
 
-  // 3. Finished the activity.
+  // Finished the activity.
   const nextActivity =
     getNextActivity(activity.id);
 
@@ -48,7 +77,7 @@ export function advanceEvent(
     };
   }
 
-  // 4. Entire evening complete.
+  // Entire event has finished.
   return {
     action: "finishEvent",
   };
