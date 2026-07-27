@@ -1,13 +1,23 @@
+import { useEffect } from "react";
+
 import type { Transition } from "@/features/event/types/transition";
-import { Envelope } from "./Envelope";
-import { Passport } from "./Passport";
-import { PartnerReveal } from "./PartnerReveal";
+
+import type { TransitionContext } from "../types/transitionContext";
+
 import { useTransition } from "../hooks/useTransition";
+
+import {
+  Envelope,
+  Passport,
+  PartnerReveal,
+} from ".";
 
 export interface TransitionPlayerProps {
   transition: Transition;
 
   context: TransitionContext;
+
+  onFinished?: () => void;
 }
 
 /**
@@ -16,13 +26,22 @@ export interface TransitionPlayerProps {
  */
 export function TransitionPlayer({
   transition,
+  context,
+  onFinished,
 }: TransitionPlayerProps) {
   const {
     currentScene,
     isFinished,
-  } = useTransition(
-    transition,
-  );
+  } = useTransition(transition);
+
+  useEffect(() => {
+    if (isFinished) {
+      onFinished?.();
+    }
+  }, [
+    isFinished,
+    onFinished,
+  ]);
 
   if (isFinished) {
     return null;
@@ -43,17 +62,10 @@ export function TransitionPlayer({
     case "partnerReveal":
       return (
         <PartnerReveal
-          partnerName="Kevin"
+          partnerName={context.partnerName}
         />
       );
 
     default:
       return null;
   }
-
-  return (
-    <div className="fixed inset-0 z-50">
-      {currentScene.type}
-    </div>
-  );
-}
