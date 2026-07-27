@@ -6,6 +6,8 @@ import { useTransition } from "../hooks/useTransition";
 
 export interface TransitionPlayerProps {
   transition: Transition;
+
+  context: TransitionContext;
 }
 
 /**
@@ -33,8 +35,8 @@ export function TransitionPlayer({
     case "passport":
       return (
         <Passport
-          partnerName="Kevin"
-          activityName="Conversation Journey"
+          partnerName={context.partnerName}
+          activityName={context.activityName}
         />
       );
 
