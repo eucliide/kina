@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import type { MeetingView } from "../types/meetingView";
 
 import { QUESTIONS } from "../data/questions";
 
@@ -15,7 +15,11 @@ const REFLECTION_DURATION = 30;
 const TOTAL_ROUNDS = 2;
 
 export function useMeeting() {
-  const navigate = useNavigate();
+  /**
+   * Current meeting lifecycle state.
+   */
+  const [state, setState] =
+    useState<MeetingState>("meeting");
 
   const [session, setSession] =
     useState<MeetingSession>(() => {
@@ -78,7 +82,7 @@ export function useMeeting() {
               clearInterval(interval);
 
               window.setTimeout(() => {
-                navigate("/reflection");
+                setView("transition");
               }, 250);
 
               return updated;
@@ -107,7 +111,7 @@ export function useMeeting() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     if (
@@ -125,6 +129,9 @@ export function useMeeting() {
   const seconds = remainingSeconds % 60;
 
   return {
+    state,
+    setState,
+
     session,
 
     question:
