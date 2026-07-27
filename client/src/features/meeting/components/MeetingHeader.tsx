@@ -9,8 +9,14 @@ export function MeetingHeader({
 }: MeetingHeaderProps) {
   return (
     <header className="mb-12 text-center">
-      <Text className="uppercase tracking-[0.25em] text-white/40">
-        Your Partner
+      <Text
+        className="
+          uppercase
+          tracking-[0.25em]
+          text-white/40
+        "
+      >
+        Conversation Partner
       </Text>
 
       <Heading className="mt-4">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { MeetingView } from "../types/meetingView";
+import type { MeetingState } from "../types/meetingState";
 import { getConversationPrompt } from "@/features/activity/services/conversationJourneyService";
 
 import {
@@ -116,9 +116,13 @@ export function useMeeting() {
   return {
     state,
     setState,
+
     session,
+
     currentStage,
+
     currentPrompt,
+
     remainingSeconds,
 
     remainingTime: `${minutes}:${seconds

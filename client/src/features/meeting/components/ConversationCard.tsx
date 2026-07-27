@@ -1,26 +1,38 @@
 import { Text } from "@/components/ui";
-import { RoundIndicator } from "./RoundIndicator";
 
 interface ConversationCardProps {
-  round: number;
+  /**
+   * Current Conversation Journey chapter.
+   */
+  chapter: number;
+
+  /**
+   * Current stage title.
+   */
+  stageTitle: string;
+
+  /**
+   * Shared prompt.
+   */
   question: string;
 }
 
 export function ConversationCard({
-  round,
+  chapter,
+  stageTitle,
   question,
 }: ConversationCardProps) {
   return (
     <section
       className="
-      rounded-3xl
-      border
-      border-white/10
-      bg-white/5
-      p-12
-      backdrop-blur
-      transition-all
-      duration-500
+        rounded-3xl
+        border
+        border-white/10
+        bg-white/5
+        p-12
+        backdrop-blur
+        transition-all
+        duration-500
       "
     >
       <Text
@@ -31,11 +43,22 @@ export function ConversationCard({
           text-white/45
         "
       >
-        ROUND {round} OF 2
+        Conversation Journey
+      </Text>
+
+      <Text
+        className="
+          mt-3
+          text-lg
+          font-medium
+          text-emerald-300
+        "
+      >
+        Chapter {chapter} · {stageTitle}
       </Text>
 
       <div
-        key={round}
+        key={stageTitle}
         className="fade-up"
       >
         <Text

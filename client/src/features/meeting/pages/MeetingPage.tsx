@@ -4,7 +4,6 @@ import {
   ConversationCard,
   MeetingHeader,
   MeetingTimer,
-  ReflectionCard,
 } from "../components";
 
 import { useMeeting } from "../hooks/useMeeting";
@@ -12,14 +11,15 @@ import { useMeeting } from "../hooks/useMeeting";
 export function MeetingPage() {
   const {
     session,
-    question,
+    currentStage,
+    currentPrompt,
     remainingTime,
     remainingSeconds,
   } = useMeeting();
 
-if (!session) {
-  return null;
-}
+  if (!session) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
@@ -36,18 +36,18 @@ if (!session) {
         >
           <MeetingHeader
             partnerName={session.participant.name}
+            stageTitle={currentStage.title}
           />
 
-          {session.phase === "conversation" ? (
-            <ConversationCard
-              round={session.round}
-              question={question.text}
-            />
-          ) : (
-            <ReflectionCard
-              remainingTime={remainingTime}
-            />
-          )}
+         <ConversationCard
+           chapter={currentStage.chapter}
+           stageTitle={currentStage.title}
+           question={
+             currentPrompt?.text ??
+             "Prompt unavailable."
+           }
+         />
+
           <MeetingTimer
             time={remainingTime}
             remainingSeconds={remainingSeconds}

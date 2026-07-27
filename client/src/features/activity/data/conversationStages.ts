@@ -1,8 +1,8 @@
 /**
  * Ordered Conversation Journey.
  *
- * Each stage represents one chapter
- * of a partner conversation.
+ * Each stage represents one
+ * chapter of the conversation.
  */
 export const CONVERSATION_STAGES = [
   {
@@ -11,18 +11,21 @@ export const CONVERSATION_STAGES = [
     title: "Getting Comfortable",
     duration: 5 * 60,
   },
+
   {
     id: "sharingStories",
     chapter: 2,
     title: "Sharing Stories",
     duration: 6 * 60,
   },
+
   {
     id: "discoveringValues",
     chapter: 3,
     title: "Discovering Values",
     duration: 6 * 60,
   },
+
   {
     id: "lookingForward",
     chapter: 4,
