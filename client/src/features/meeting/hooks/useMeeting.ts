@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import type { MeetingView } from "../types/meetingView";
 
-import { getCurrentStage } from "../services/stageService";
+import {
+  getCurrentStage,
+  getNextStage,
+} from "../services/stageService";
 
 import {
   getSession,
@@ -49,73 +52,36 @@ export function useMeeting() {
   useEffect(() => {
     const interval = window.setInterval(() => {
       setRemainingSeconds((seconds) => {
-        // Continue counting down.
         if (seconds > 1) {
           return seconds - 1;
         }
 
-        let nextDuration = 0;
+        const nextStage = getNextStage(
+          session.currentStageId,
+        );
 
-        setSession((current) => {
-          let updated: MeetingSession;
+        /**
+         * Conversation complete.
+         */
+        if (!nextStage) {
+          setState("transition");
 
-          /**
-           * Conversation → Reflection
-           */
-          if (current.phase === "conversation") {
-            updated = {
-              ...current,
-              phase: "reflection",
-            };
+          return 0;
+        }
 
-            nextDuration = REFLECTION_DURATION;
-          }
+        /**
+         * Advance to the next stage.
+         */
+        const updatedSession: MeetingSession = {
+          ...session,
+          currentStageId: nextStage.id,
+        };
 
-          /**
-           * Reflection finished.
-           */
-          else {
-            /**
-             * Last round completed.
-             */
-            if (
-              current.round >= TOTAL_ROUNDS
-            ) {
-              updated = {
-                ...current,
-                phase: "complete",
-              };
+        updateSession(updatedSession);
 
-              updateSession(updated);
+        setSession(updatedSession);
 
-              clearInterval(interval);
-
-              window.setTimeout(() => {
-                setView("transition");
-              }, 250);
-
-              return updated;
-            }
-
-            /**
-             * Start next round.
-             */
-            updated = {
-              ...current,
-              round: current.round + 1,
-              phase: "conversation",
-            };
-
-            nextDuration =
-              CONVERSATION_DURATION;
-          }
-
-          updateSession(updated);
-
-          return updated;
-        });
-
-        return nextDuration;
+        return nextStage.duration;
       });
     }, 1000);
 
