@@ -21,6 +21,11 @@ export function useMeeting() {
   const [state, setState] =
     useState<MeetingState>("meeting");
 
+  const [transitionState, setTransitionState] =
+    useState<ChapterTransitionState>(
+      "idle",
+    );
+
   const [session, setSession] =
     useState<MeetingSession>(() => {
       const existing = getSession();
@@ -87,16 +92,24 @@ export function useMeeting() {
           currentStageId: nextStage.id,
         };
 
-        updateSession(updatedSession);
+        setTransitionState(
+          "transitioning",
+        );
 
-        setSession(updatedSession);
+        window.setTimeout(() => {
+          updateSession(updatedSession);
+
+          setSession(updatedSession);
+
+          setTransitionState("idle");
+        }, 900);
 
         return nextStage.duration;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [session.currentStageId]);
 
   useEffect(() => {
     if (
@@ -118,6 +131,8 @@ export function useMeeting() {
     setState,
 
     session,
+
+    transitionState,
 
     currentStage,
 
