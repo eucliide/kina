@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { MeetingView } from "../types/meetingView";
+import { getConversationPrompt } from "@/features/activity/services/conversationJourneyService";
 
 import {
   getCurrentStage,
@@ -39,6 +40,15 @@ export function useMeeting() {
   const currentStage = getCurrentStage(
     session.currentStageId,
   );
+  /**
+   * Shared prompt shown to both
+   * conversation partners.
+   */
+  const currentPrompt =
+    getConversationPrompt(
+      session.partnerRotation,
+      session.currentStageId,
+    );
 
   if (!currentStage) {
     throw new Error(
@@ -106,11 +116,9 @@ export function useMeeting() {
   return {
     state,
     setState,
-
     session,
-
     currentStage,
-
+    currentPrompt,
     remainingSeconds,
 
     remainingTime: `${minutes}:${seconds
