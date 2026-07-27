@@ -66,27 +66,49 @@ export function ConversationCard({
 
       <div
         key={stageTitle}
-        className={`
-          fade-up
+        className="
+          mt-8
+          min-h-[180px]
+          flex
+          items-center
+          justify-center
           transition-all
           duration-700
-          ${
-            transitioning
-              ? "opacity-0 scale-95"
-              : "opacity-100 scale-100"
-          }
-        `}
+        "
       >
-        <Text
-          className="
-            mt-8
-            text-3xl
-            leading-relaxed
-            text-white
-          "
-        >
-          {question}
-        </Text>
+        {transitioning ? (
+          <div className="text-center fade-up">
+            <Text
+              className="
+                text-2xl
+                font-semibold
+                text-emerald-300
+              "
+            >
+              ✓ Chapter Complete
+            </Text>
+
+            <Text
+              className="
+                mt-4
+                text-white/60
+              "
+            >
+              Preparing next chapter...
+            </Text>
+          </div>
+        ) : (
+          <Text
+            className="
+              fade-up
+              text-3xl
+              leading-relaxed
+              text-white
+            "
+          >
+            {question}
+          </Text>
+        )}
       </div>
     </section>
   );
