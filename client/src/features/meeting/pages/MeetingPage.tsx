@@ -11,6 +11,7 @@ import { useMeeting } from "../hooks/useMeeting";
 export function MeetingPage() {
   const {
     session,
+    transitionState,
     currentStage,
     currentPrompt,
     remainingTime,
@@ -45,6 +46,10 @@ export function MeetingPage() {
            question={
              currentPrompt?.text ??
              "Prompt unavailable."
+           }
+           transitioning={
+             transitionState ===
+             "transitioning"
            }
          />
 

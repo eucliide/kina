@@ -15,12 +15,19 @@ interface ConversationCardProps {
    * Shared prompt.
    */
   question: string;
+
+  /**
+   * Whether the chapter
+   * is currently transitioning.
+   */
+  transitioning: boolean;
 }
 
 export function ConversationCard({
   chapter,
   stageTitle,
   question,
+  transitioning,
 }: ConversationCardProps) {
   return (
     <section
@@ -59,7 +66,16 @@ export function ConversationCard({
 
       <div
         key={stageTitle}
-        className="fade-up"
+        className={`
+          fade-up
+          transition-all
+          duration-700
+          ${
+            transitioning
+              ? "opacity-0 scale-95"
+              : "opacity-100 scale-100"
+          }
+        `}
       >
         <Text
           className="
