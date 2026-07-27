@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { MeetingView } from "../types/meetingView";
 
-import { QUESTIONS } from "../data/questions";
+import { getCurrentStage } from "../services/stageService";
 
 import {
   getSession,
@@ -9,10 +9,6 @@ import {
 } from "../services/meetingSession";
 
 import type { MeetingSession } from "../types";
-
-const CONVERSATION_DURATION = 7 * 60 + 30;
-const REFLECTION_DURATION = 30;
-const TOTAL_ROUNDS = 2;
 
 export function useMeeting() {
   /**
@@ -34,8 +30,21 @@ export function useMeeting() {
       return existing;
     });
 
+  /**
+   * Current Conversation Journey stage.
+   */
+  const currentStage = getCurrentStage(
+    session.currentStageId,
+  );
+
+  if (!currentStage) {
+    throw new Error(
+      "Unknown conversation stage.",
+    );
+  }
+
   const [remainingSeconds, setRemainingSeconds] =
-    useState(CONVERSATION_DURATION);
+    useState(currentStage.duration);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -134,8 +143,7 @@ export function useMeeting() {
 
     session,
 
-    question:
-      QUESTIONS[session.round - 1],
+    currentStage,
 
     remainingSeconds,
 
