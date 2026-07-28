@@ -6,6 +6,11 @@ import {
   MeetingTimer,
 } from "../components";
 
+//prevents magic numbers from spreading through the codebase.
+import {
+  TOTAL_PARTNER_ROTATIONS,
+} from "@/features/event/constants/event";
+
 import {
   ConversationPassportCard,
 } from "@/features/passport/components";
@@ -14,6 +19,7 @@ import { useMeeting } from "../hooks/useMeeting";
 
 export function MeetingPage() {
   const {
+    passport,
     session,
     transitionState,
     currentStage,
@@ -45,10 +51,10 @@ export function MeetingPage() {
 
           <div className="mb-8">
             <ConversationPassportCard
-              rotation={session.partnerRotation}
-              totalRotations={4}
+              rotation={passport.rotation}
+              totalRotations={TOTAL_PARTNER_ROTATIONS}
               currentChapter={
-                currentStage.chapter
+                passport.currentChapter
               }
             />
           </div>

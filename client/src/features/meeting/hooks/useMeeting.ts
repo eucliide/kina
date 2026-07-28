@@ -88,9 +88,15 @@ export function useMeeting() {
          * Conversation complete.
          */
         if (!nextStage) {
-          setState("transition");
+         setTransitionState(
+           "transitioning",
+         );
 
-          return 0;
+         window.setTimeout(() => {
+           setState("transition");
+         }, 1200);
+
+         return 0;
         }
 
         /**
