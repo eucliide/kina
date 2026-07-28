@@ -6,6 +6,10 @@ import {
   MeetingTimer,
 } from "../components";
 
+import {
+  ConversationPassportCard,
+} from "@/features/passport/components";
+
 import { useMeeting } from "../hooks/useMeeting";
 
 export function MeetingPage() {
@@ -37,21 +41,30 @@ export function MeetingPage() {
         >
           <MeetingHeader
             partnerName={session.participant.name}
-            stageTitle={currentStage.title}
           />
 
-         <ConversationCard
-           chapter={currentStage.chapter}
-           stageTitle={currentStage.title}
-           question={
-             currentPrompt?.text ??
-             "Prompt unavailable."
-           }
-           transitioning={
-             transitionState ===
-             "transitioning"
-           }
-         />
+          <div className="mb-8">
+            <ConversationPassportCard
+              rotation={session.partnerRotation}
+              totalRotations={4}
+              currentChapter={
+                currentStage.chapter
+              }
+            />
+          </div>
+
+          <ConversationCard
+            chapter={currentStage.chapter}
+            stageTitle={currentStage.title}
+            question={
+              currentPrompt?.text ??
+              "Prompt unavailable."
+            }
+            transitioning={
+              transitionState ===
+              "transitioning"
+            }
+          />
 
           <MeetingTimer
             time={remainingTime}
