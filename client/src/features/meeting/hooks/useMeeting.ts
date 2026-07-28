@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { MeetingState } from "../types/meetingState";
 import { getConversationPrompt } from "@/features/activity/services/conversationJourneyService";
+import { useConversationPassport } from "@/features/passport/hooks/useConversationPassport";
 
 import {
   getCurrentStage,
@@ -39,12 +40,20 @@ export function useMeeting() {
       return existing;
     });
 
+  const {
+    passport,
+    completeCurrentChapter,
+  } = useConversationPassport(
+    session.partnerRotation,
+  );
+
   /**
    * Current Conversation Journey stage.
    */
   const currentStage = getCurrentStage(
     session.currentStageId,
   );
+
   /**
    * Shared prompt shown to both
    * conversation partners.
@@ -85,6 +94,14 @@ export function useMeeting() {
         }
 
         /**
+         * Complete the current passport chapter
+         * before transitioning.
+         */
+        completeCurrentChapter(
+          currentStage.chapter,
+        );
+
+        /**
          * Advance to the next stage.
          */
         const updatedSession: MeetingSession = {
@@ -109,7 +126,12 @@ export function useMeeting() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [session.currentStageId]);
+  }, [
+    session.currentStageId,
+    session,
+    currentStage,
+    completeCurrentChapter,
+  ]);
 
   useEffect(() => {
     if (
@@ -130,9 +152,11 @@ export function useMeeting() {
     state,
     setState,
 
-    session,
-
     transitionState,
+
+    passport,
+
+    session,
 
     currentStage,
 
