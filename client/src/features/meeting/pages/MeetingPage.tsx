@@ -12,6 +12,10 @@ import {
 } from "@/features/event/constants/event";
 
 import {
+  ConversationComplete,
+} from "../components";
+
+import {
   ConversationPassportCard,
 } from "@/features/passport/components";
 
@@ -19,13 +23,14 @@ import { useMeeting } from "../hooks/useMeeting";
 
 export function MeetingPage() {
   const {
+    state,
     passport,
     session,
     transitionState,
     currentStage,
     currentPrompt,
     remainingTime,
-    remainingSeconds,
+   remainingSeconds,
   } = useMeeting();
 
   if (!session) {
@@ -59,18 +64,22 @@ export function MeetingPage() {
             />
           </div>
 
-          <ConversationCard
-            chapter={currentStage.chapter}
-            stageTitle={currentStage.title}
-            question={
-              currentPrompt?.text ??
-              "Prompt unavailable."
-            }
-            transitioning={
-              transitionState ===
-              "transitioning"
-            }
-          />
+          {state === "meeting" ? (
+            <ConversationCard
+              chapter={currentStage.chapter}
+              stageTitle={currentStage.title}
+              question={
+                currentPrompt?.text ??
+                "Prompt unavailable."
+              }
+              transitioning={
+                transitionState ===
+                "transitioning"
+              }
+            />
+          ) : (
+            <ConversationComplete />
+          )}
 
           <MeetingTimer
             time={remainingTime}
