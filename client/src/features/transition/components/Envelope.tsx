@@ -1,64 +1,43 @@
-import { Text } from "@/components/ui";
+import { Heading, Text } from "@/components/ui";
 
-/**
- * Envelope displayed before
- * revealing the next partner.
- */
 export function Envelope() {
   return (
     <section
       className="
         flex
         min-h-screen
+        flex-col
         items-center
         justify-center
+        bg-[#07111f]
+        text-white
+        animate-fade-in
       "
     >
       <div
         className="
-          w-80
-          rounded-2xl
+          flex
+          h-40
+          w-56
+          items-center
+          justify-center
+          rounded-xl
           border
           border-white/10
-          bg-[#0B1728]
-          p-10
-          shadow-2xl
-          text-center
+          bg-white/5
+          backdrop-blur
         "
       >
-        <Text
-          className="
-            text-xs
-            uppercase
-            tracking-[0.3em]
-            text-white/40
-          "
-        >
-          Ki
-        </Text>
-
-        <Text
-          className="
-            mt-8
-            text-2xl
-            font-light
-            text-white
-          "
-        >
-          Your next conversation
-          awaits.
-        </Text>
-
-        <Text
-          className="
-            mt-6
-            text-sm
-            text-white/50
-          "
-        >
-          Open when ready.
-        </Text>
+        ✉️
       </div>
+
+      <Heading className="mt-10">
+        Preparing your next conversation
+      </Heading>
+
+      <Text className="mt-4 text-white/60">
+        One moment...
+      </Text>
     </section>
   );
 }
