@@ -7,6 +7,23 @@ function App() {
     startTransition,
     finishTransition,
   } = useTransitionCoordinator();
+
+  if (transition) {
+    return (
+      <TransitionPlayer
+        transition={transition}
+        context={{
+          partnerName: "Kevin",
+          activityName:
+            "Conversation Journey",
+        }}
+        onFinished={
+          finishTransition
+        }
+      />
+    );
+  }
+
   return <MarketingPage />;
 }
 
