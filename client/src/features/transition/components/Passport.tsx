@@ -1,21 +1,11 @@
-import { Text } from "@/components/ui";
+import { Heading, Text } from "@/components/ui";
 
-export interface PassportProps {
-  /**
-   * Partner name.
-   */
+interface PassportProps {
   partnerName: string;
 
-  /**
-   * Current activity.
-   */
   activityName: string;
 }
 
-/**
- * Passport shown after the
- * envelope opens.
- */
 export function Passport({
   partnerName,
   activityName,
@@ -23,51 +13,42 @@ export function Passport({
   return (
     <section
       className="
-        mx-auto
-        w-full
-        max-w-md
-        rounded-3xl
-        border
-        border-white/10
-        bg-[#0B1728]
-        p-10
-        shadow-2xl
-        backdrop-blur
+        flex
+        min-h-screen
+        items-center
+        justify-center
+        bg-[#07111f]
+        text-white
       "
     >
-      <Text
+      <div
         className="
-          text-xs
-          uppercase
-          tracking-[0.3em]
-          text-emerald-300
+          w-full
+          max-w-md
+          rounded-3xl
+          border
+          border-white/10
+          bg-white/5
+          p-10
+          backdrop-blur
         "
       >
-        ✓ Verified
-      </Text>
+        <Text className="uppercase tracking-[0.25em] text-white/40">
+          Conversation Passport
+        </Text>
 
-      <Text
-        className="
-          mt-10
-          text-4xl
-          font-light
-          text-white
-        "
-      >
-        {partnerName}
-      </Text>
+        <Heading className="mt-4">
+          {activityName}
+        </Heading>
 
-      <Text
-        className="
-          mt-4
-          text-sm
-          uppercase
-          tracking-[0.25em]
-          text-white/45
-        "
-      >
-        {activityName}
-      </Text>
+        <Text className="mt-8 text-white/60">
+          Your next partner is about to be revealed.
+        </Text>
+
+        <Text className="mt-4 text-emerald-300">
+          Get ready to continue your journey.
+        </Text>
+      </div>
     </section>
   );
 }
