@@ -1,7 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import type { Transition } from "@/features/event/types/transition";
-
 import type { TransitionContext } from "../types/transitionContext";
 
 import { useTransition } from "../hooks/useTransition";
@@ -14,34 +13,35 @@ import {
 
 export interface TransitionPlayerProps {
   transition: Transition;
-
   context: TransitionContext;
-
   onFinished?: () => void;
 }
 
 /**
- * Plays a transition scene
- * by scene.
+ * Plays a transition scene by scene.
  */
 export function TransitionPlayer({
   transition,
   context,
   onFinished,
 }: TransitionPlayerProps) {
-  const {
-    currentScene,
-    isFinished,
-  } = useTransition(transition);
+  const { currentScene, isFinished } = useTransition(transition);
+
+  const didNotifyFinish = useRef(false);
+
+  // Reset when a new transition starts.
+  useEffect(() => {
+    didNotifyFinish.current = false;
+  }, [transition]);
 
   useEffect(() => {
-    if (isFinished) {
-      onFinished?.();
+    if (!isFinished || didNotifyFinish.current) {
+      return;
     }
-  }, [
-    isFinished,
-    onFinished,
-  ]);
+
+    didNotifyFinish.current = true;
+    onFinished?.();
+  }, [isFinished, onFinished]);
 
   if (isFinished) {
     return null;
@@ -69,3 +69,4 @@ export function TransitionPlayer({
     default:
       return null;
   }
+}
