@@ -11,11 +11,6 @@ export interface Event {
   name: string;
 
   /**
-   * Current activity being played.
-   */
-  activityId: string;
-
-  /**
    * Host controls progression.
    */
   hostId: string;
@@ -26,7 +21,7 @@ export interface Event {
   stage: EventStage;
 
   /**
-   * Current activity.
+   * Current activity being played.
    */
   currentActivityId: string;
 

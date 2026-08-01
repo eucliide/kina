@@ -6,10 +6,13 @@ import type {
 import type { EventAction } from "../types/eventAction";
 
 import { getNextActivity } from "./activityService";
+
 import {
   getNextStage,
   isFinalStage,
 } from "./activityProgressionService";
+
+import type { MeetingSession } from "@/features/meeting/types";
 
 export interface EventControllerResult {
   /**
@@ -35,30 +38,49 @@ export interface EventControllerResult {
  * Coordinates progression through
  * the current Ki event.
  *
- * This controller contains business
- * decisions only. It does not
- * navigate, animate, or update UI.
+ * Business decisions only.
+ * No UI, navigation, or animation.
  */
 export function advanceEvent(
-  event: Event,
+  _event: Event,
   activity: Activity,
-  session: ActivitySession,
+  session: MeetingSession,
 ): EventControllerResult {
-  // Continue within the current partner.
-  if (!isFinalStage(activity, currentStageId)) {
+  /**
+   * Continue within the current
+   * conversation.
+   */
+  if (
+    !isFinalStage(
+      activity,
+      session.currentStageId,
+    )
+  ) {
+    const nextStage = getNextStage(
+      activity,
+      session.currentStageId,
+    );
+
+    if (!nextStage) {
+      throw new Error(
+        "Unable to determine next stage.",
+      );
+    }
+
     return {
       action: "nextStage",
-      stage: getNextStage(
-        activity,
-        session.currentStageId,
-      ),
+      stage: nextStage,
     };
   }
 
-  // Finished all stages with this partner.
-  // Rotate if more partner rotations remain.
+  /**
+   * Current partner's conversation
+   * is complete.
+   *
+   * Rotate if more partners remain.
+   */
   if (
-    session.currentPartnerRotation <
+    session.partnerRotation <
     activity.partnerRotations
   ) {
     return {
@@ -66,7 +88,11 @@ export function advanceEvent(
     };
   }
 
-  // Finished the activity.
+  /**
+   * Current activity is complete.
+   *
+   * Move to the next activity.
+   */
   const nextActivity =
     getNextActivity(activity.id);
 
@@ -77,7 +103,9 @@ export function advanceEvent(
     };
   }
 
-  // Entire event has finished.
+  /**
+   * No activities remain.
+   */
   return {
     action: "finishEvent",
   };

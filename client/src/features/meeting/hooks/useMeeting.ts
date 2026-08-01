@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { MeetingState } from "../types/meetingState";
+import type { ChapterTransitionState } from "../types/chapterTransition";
 import { getConversationPrompt } from "@/features/activity/services/conversationJourneyService";
 import { useConversationPassport } from "@/features/passport/hooks/useConversationPassport";
 

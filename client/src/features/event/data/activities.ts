@@ -16,7 +16,7 @@ export const ACTIVITIES: Activity[] = [
 
     partnerRotations: 4,
 
-    chapters: [
+    stages: [
       {
         id: "getting-comfortable",
         title: "Getting Comfortable",
@@ -42,7 +42,7 @@ export const ACTIVITIES: Activity[] = [
 
     partnerRotations: 1,
 
-    chapters: [
+    stages: [
       {
         id: "perception",
         title: "Perception",
@@ -80,7 +80,7 @@ export const ACTIVITIES: Activity[] = [
 
     partnerRotations: 1,
 
-    chapters: [
+    stages: [
       {
         id: "group-discussion",
         title: "Group Discussion",
@@ -100,7 +100,7 @@ export const ACTIVITIES: Activity[] = [
 
     partnerRotations: 1,
 
-    chapters: [
+    stages: [
       {
         id: "mission-reveal",
         title: "Mission Reveal",
