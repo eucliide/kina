@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { MeetingState } from "../types/meetingState";
 import type { ChapterTransitionState } from "../types/chapterTransition";
+import type { ConversationPrompt } from "@/features/activity/types/conversationPrompt";
 import { getConversationPrompt } from "@/features/activity/services/conversationJourneyService";
 import { useConversationPassport } from "@/features/passport/hooks/useConversationPassport";
 
@@ -22,6 +23,9 @@ export function useMeeting() {
    */
   const [state, setState] =
     useState<MeetingState>("meeting");
+
+  const [currentPrompt, setCurrentPrompt] =
+    useState<ConversationPrompt | undefined>();
 
   const [transitionState, setTransitionState] =
     useState<ChapterTransitionState>(
@@ -59,11 +63,30 @@ export function useMeeting() {
    * Shared prompt shown to both
    * conversation partners.
    */
-  const currentPrompt =
-    getConversationPrompt(
-      session.partnerRotation,
-      session.currentStageId,
-    );
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPrompt() {
+      const prompt =
+        await getConversationPrompt(
+          session.partnerRotation,
+          session.currentStageId,
+        );
+
+      if (!cancelled) {
+        setCurrentPrompt(prompt);
+      }
+    }
+
+    loadPrompt();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    session.partnerRotation,
+    session.currentStageId,
+  ]);
 
   if (!currentStage) {
     throw new Error(

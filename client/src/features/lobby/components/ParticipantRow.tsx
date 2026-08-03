@@ -13,10 +13,14 @@ export function ParticipantRow({
   status,
   onClick,
 }: ParticipantRowProps) {
+  const available =
+    status === "available";
+
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={!available}
       className="
         flex
         w-full
@@ -37,11 +41,7 @@ export function ParticipantRow({
       "
     >
       <PresenceDot
-        status={
-          status === "available"
-            ? "available"
-            : "busy"
-        }
+        status={status}
       />
 
       <div>
@@ -50,7 +50,7 @@ export function ParticipantRow({
         </Text>
 
         <Text className="mt-1 text-sm text-white/50">
-          {status === "available"
+          {available
             ? "Available"
             : "In conversation"}
         </Text>

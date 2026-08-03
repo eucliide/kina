@@ -25,6 +25,8 @@ export function LobbyContent({
   selectedParticipant,
   sendInvitation,
   cancelInvitation,
+  acceptInvitation,
+  declineInvitation,
 }: LobbyContentProps) {
   switch (state) {
     case "waiting":
@@ -33,24 +35,29 @@ export function LobbyContent({
     case "available":
       return (
         <div className="mt-10 max-w-xl space-y-3">
-          {participants.map((participant) => (
-            <ParticipantRow
-              key={participant.id}
-              name={participant.name}
-              status={participant.status}
-              onClick={() =>
-                participant.status === "available" &&
-                sendInvitation(participant.name)
-              }
-            />
-          ))}
+          {participants.map(
+            (participant) => (
+              <ParticipantRow
+                key={participant.id}
+                name={participant.name}
+                status={participant.status}
+                onClick={() =>
+                  sendInvitation(
+                    participant.name,
+                  )
+                }
+              />
+            ),
+          )}
         </div>
       );
 
     case "sent":
       return (
         <InvitationSentCard
-          participantName={selectedParticipant}
+          participantName={
+            selectedParticipant
+          }
           onCancel={cancelInvitation}
         />
       );
@@ -59,8 +66,12 @@ export function LobbyContent({
       return (
         <InvitationRequestCard
           participantName="John"
-          onAccept={acceptInvitation}
-          onDecline={declineInvitation}
+          onAccept={
+            acceptInvitation
+          }
+          onDecline={
+            declineInvitation
+          }
         />
       );
 
