@@ -1,35 +1,75 @@
-import { ROTATION_ONE } from "../data/conversationJourney/rotation1";
-import { ROTATION_TWO } from "../data/conversationJourney/rotation2";
-import { ROTATION_THREE } from "../data/conversationJourney/rotation3";
-import { ROTATION_FOUR } from "../data/conversationJourney/rotation4";
+import { supabase } from "@/lib/supabase";
 
 import type { ConversationPrompt } from "../types/conversationPrompt";
+
+interface DatabasePrompt {
+  id: string;
+  activity_id: string;
+  partner_rotation: number;
+  chapter: number;
+  stage_id: string;
+  prompt_text: string;
+  prompt_order: number;
+  is_active: boolean;
+}
 
 /**
  * Returns the shared prompt for the
  * current partner rotation and stage.
+ *
+ * Conversation Journey content is
+ * loaded from Supabase.
  */
-export function getConversationPrompt(
+export async function getConversationPrompt(
   partnerRotation: number,
   stageId: string,
-): ConversationPrompt | undefined {
-  const rotations = {
-    1: ROTATION_ONE,
-    2: ROTATION_TWO,
-    3: ROTATION_THREE,
-    4: ROTATION_FOUR,
-  };
+): Promise<ConversationPrompt | undefined> {
+  const { data, error } = await supabase
+    .from("prompts")
+    .select(
+      `
+        id,
+        activity_id,
+        partner_rotation,
+        chapter,
+        stage_id,
+        prompt_text,
+        prompt_order,
+        is_active
+      `,
+    )
+    .eq(
+      "activity_id",
+      "conversationJourney",
+    )
+    .eq(
+      "partner_rotation",
+      partnerRotation,
+    )
+    .eq("stage_id", stageId)
+    .eq("is_active", true)
+    .order("prompt_order", {
+      ascending: true,
+    })
+    .limit(1)
+    .maybeSingle();
 
-  const prompts =
-    rotations[
-      partnerRotation as keyof typeof rotations
-    ];
+  if (error) {
+    throw new Error(
+      `Failed to load Conversation Journey prompt: ${error.message}`,
+    );
+  }
 
-  if (!prompts) {
+  if (!data) {
     return undefined;
   }
 
-  return prompts.find(
-    (prompt) => prompt.stageId === stageId,
-  );
+  const prompt =
+    data as DatabasePrompt;
+
+  return {
+    id: prompt.id,
+    stageId: prompt.stage_id,
+    text: prompt.prompt_text,
+  };
 }
