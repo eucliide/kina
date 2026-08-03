@@ -1,18 +1,26 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { createSession } from "@/features/meeting/services/meetingSession";
+import {
+  getJoinedParticipant,
+} from "@/features/join/services/joinSession";
+
 import type {
   LobbyState,
   Participant,
 } from "../types";
 
-
 export function useLobbyState() {
   const [state, setState] =
-    useState<LobbyState>("available");
+    useState<LobbyState>(
+      "available",
+    );
 
-  const [selectedParticipant, setSelectedParticipant] =
-    useState("");
+  const [
+    selectedParticipant,
+    setSelectedParticipant,
+  ] = useState("");
 
   const navigate = useNavigate();
 
@@ -34,14 +42,29 @@ export function useLobbyState() {
     },
   ];
 
- function sendInvitation(name: string) {
-   createSession({
-     id: crypto.randomUUID(),
-     name,
-   });
+  function sendInvitation(
+    name: string,
+  ) {
+    const participant =
+      participants.find(
+        (item) =>
+          item.name === name,
+      );
 
-   navigate("/meeting");
- }
+    if (!participant) {
+      return;
+    }
+
+    setSelectedParticipant(
+      participant.id,
+    );
+
+    createSession(
+      participant,
+    );
+
+    navigate("/meeting");
+  }
 
   function cancelInvitation() {
     setSelectedParticipant("");
@@ -53,6 +76,18 @@ export function useLobbyState() {
   }
 
   function acceptInvitation() {
+    const participant =
+      getJoinedParticipant();
+
+    if (!participant) {
+      navigate("/join");
+      return;
+    }
+
+    createSession(
+      participant,
+    );
+
     navigate("/meeting");
   }
 

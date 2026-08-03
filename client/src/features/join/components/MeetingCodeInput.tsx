@@ -1,6 +1,18 @@
-export function MeetingCodeInput() {
+type MeetingCodeInputProps = {
+  value: string;
+  onChange: (value: string) => void;
+};
+
+export function MeetingCodeInput({
+  value,
+  onChange,
+}: MeetingCodeInputProps) {
   return (
     <input
+      value={value}
+      onChange={(event) =>
+        onChange(event.target.value)
+      }
       placeholder="Enter meeting code"
       className="
         h-12 w-full rounded-xl
@@ -10,6 +22,7 @@ export function MeetingCodeInput() {
         text-white
         outline-none
         placeholder:text-white/40
+        focus:border-blue-500
       "
     />
   );

@@ -1,15 +1,26 @@
+import { useState } from "react";
 import { Button } from "@/components/ui";
 
 type NameFormProps = {
-  onContinue?: () => void;
+  onContinue?: (
+    name: string,
+  ) => void;
 };
 
-export function NameForm({ onContinue }: NameFormProps) {
+export function NameForm({
+  onContinue,
+}: NameFormProps) {
+  const [name, setName] =
+    useState("");
+
   return (
     <div className="space-y-4">
-
       <input
         type="text"
+        value={name}
+        onChange={(event) =>
+          setName(event.target.value)
+        }
         placeholder="First name"
         className="
           h-12
@@ -29,11 +40,13 @@ export function NameForm({ onContinue }: NameFormProps) {
 
       <Button
         className="w-full"
-        onClick={onContinue}
+        onClick={() =>
+          onContinue?.(name.trim())
+        }
+        disabled={!name.trim()}
       >
         Continue
       </Button>
-
     </div>
   );
 }
