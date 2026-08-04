@@ -13,6 +13,7 @@ export function LobbyPage() {
     selectedParticipant,
 
     sendInvitation,
+    incomingInvitation,
     cancelInvitation,
 
     acceptInvitation,
@@ -36,6 +37,7 @@ export function LobbyPage() {
             participants={participants}
             selectedParticipant={selectedParticipant}
             sendInvitation={sendInvitation}
+            incomingInvitation={incomingInvitation}
             cancelInvitation={cancelInvitation}
             acceptInvitation={acceptInvitation}
             declineInvitation={declineInvitation}

@@ -22,6 +22,12 @@ import type {
   Participant,
 } from "../types";
 
+interface IncomingInvitation {
+  id: string;
+  senderId: string;
+  senderName: string;
+}
+
 export function useLobbyState() {
   const [state, setState] =
     useState<LobbyState>("available");
@@ -31,6 +37,14 @@ export function useLobbyState() {
     setSelectedParticipant,
   ] = useState("");
 
+  const [
+    incomingInvitation,
+    setIncomingInvitation,
+  ] =
+    useState<IncomingInvitation | null>(
+      null,
+    );
+
   const navigate = useNavigate();
 
   const [participants, setParticipants] =
@@ -39,14 +53,19 @@ export function useLobbyState() {
   useEffect(() => {
     const event = getJoinedEvent();
 
-    if (!event) {
+    const currentParticipant =
+      getJoinedParticipant();
+
+    if (!event || !currentParticipant) {
       return;
     }
 
     async function fetchParticipants() {
       try {
         const loaded =
-          await loadParticipants(event.id);
+          await loadParticipants(
+            event!.id,
+          );
 
         setParticipants(loaded);
       } catch (error) {
@@ -56,33 +75,106 @@ export function useLobbyState() {
 
     fetchParticipants();
 
-    const channel = supabase
-      .channel(
-        `event-participants:${event.id}`,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "event_participants",
-          filter: `event_id=eq.${event.id}`,
-        },
-        () => {
-          fetchParticipants();
-        },
-      )
-      .subscribe();
+    const participantChannel =
+      supabase
+        .channel(
+          `event-participants:${event.id}`,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "event_participants",
+            filter:
+              `event_id=eq.${event.id}`,
+          },
+          () => {
+            fetchParticipants();
+          },
+        )
+        .subscribe();
+
+    const invitationChannel =
+      supabase
+        .channel(
+          `event-invitations:${currentParticipant.id}`,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "event_invitations",
+            filter:
+              `receiver_id=eq.${currentParticipant.id}`,
+          },
+          async (payload) => {
+            const invitation =
+              payload.new as {
+                id: string;
+                sender_id: string;
+                receiver_id: string;
+                status: string;
+              };
+
+            if (
+              invitation.status !==
+              "pending"
+            ) {
+              return;
+            }
+
+            const {
+              data: sender,
+              error,
+            } = await supabase
+              .from(
+                "event_participants",
+              )
+              .select(
+                "display_name",
+              )
+              .eq(
+                "id",
+                invitation.sender_id,
+              )
+              .single();
+
+            if (error) {
+              console.error(error);
+              return;
+            }
+
+            setIncomingInvitation({
+              id: invitation.id,
+              senderId:
+                invitation.sender_id,
+              senderName:
+                sender.display_name,
+            });
+
+            setState("received");
+          },
+        )
+        .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(
+        participantChannel,
+      );
+
+      supabase.removeChannel(
+        invitationChannel,
+      );
     };
   }, []);
 
   async function sendInvitation(
     participant: Participant,
   ) {
-    const event = getJoinedEvent();
+    const event =
+      getJoinedEvent();
 
     if (!event) {
       console.error(
@@ -120,17 +212,26 @@ export function useLobbyState() {
     const participant =
       getJoinedParticipant();
 
-    if (!participant) {
+    if (
+      !participant ||
+      !incomingInvitation
+    ) {
       navigate("/join");
       return;
     }
 
-    createSession(participant);
+    createSession({
+      id:
+        incomingInvitation.senderId,
+      name:
+        incomingInvitation.senderName,
+    });
 
     navigate("/meeting");
   }
 
   function declineInvitation() {
+    setIncomingInvitation(null);
     setState("available");
   }
 
@@ -140,6 +241,7 @@ export function useLobbyState() {
 
     participants,
     selectedParticipant,
+    incomingInvitation,
 
     sendInvitation,
     cancelInvitation,

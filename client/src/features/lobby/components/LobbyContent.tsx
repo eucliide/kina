@@ -13,9 +13,16 @@ interface LobbyContentProps {
   participants: Participant[];
   selectedParticipant: string;
 
+  incomingInvitation: {
+    id: string;
+    senderId: string;
+    senderName: string;
+  } | null;
+
   sendInvitation: (
     participant: Participant,
   ) => void;
+
   cancelInvitation: () => void;
   acceptInvitation: () => void;
   declineInvitation: () => void;
@@ -25,11 +32,13 @@ export function LobbyContent({
   state,
   participants,
   selectedParticipant,
+  incomingInvitation,
   sendInvitation,
   cancelInvitation,
   acceptInvitation,
   declineInvitation,
 }: LobbyContentProps) {
+
   switch (state) {
     case "waiting":
       return <WaitingCard />;
@@ -64,9 +73,15 @@ export function LobbyContent({
       );
 
     case "received":
+      if (!incomingInvitation) {
+        return null;
+      }
+
       return (
         <InvitationRequestCard
-          participantName="John"
+          participantName={
+            incomingInvitation.senderName
+          }
           onAccept={
             acceptInvitation
           }
