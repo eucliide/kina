@@ -74,15 +74,32 @@ export async function registerParticipant(
 export async function loadParticipants(
   eventId: string,
 ): Promise<Participant[]> {
+  const {
+    data: {
+      user,
+    },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error(
+      "No authenticated user.",
+    );
+  }
+
   const { data, error } =
     await supabase
       .from("event_participants")
       .select(`
         id,
+        participant_id,
         display_name,
         presence_status
       `)
       .eq("event_id", eventId)
+      .neq(
+        "participant_id",
+        user.id,
+      )
       .order("joined_at", {
         ascending: true,
       });
