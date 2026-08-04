@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { loadParticipants } from "../services/lobbyService";
+import { supabase } from "@/lib/supabase";
+
+import {
+  loadParticipants,
+} from "../services/lobbyService";
 
 import { createSession } from "@/features/meeting/services/meetingSession";
 
@@ -32,15 +36,15 @@ export function useLobbyState() {
     useState<Participant[]>([]);
 
   useEffect(() => {
+    const event =
+      getJoinedEvent();
+
+    if (!event) {
+      return;
+    }
+
     async function fetchParticipants() {
       try {
-        const event =
-          getJoinedEvent();
-
-        if (!event) {
-          return;
-        }
-
         const loaded =
           await loadParticipants(
             event.id,
@@ -53,6 +57,31 @@ export function useLobbyState() {
     }
 
     fetchParticipants();
+
+    const channel =
+      supabase
+        .channel(
+          `event-participants:${event.id}`,
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "event_participants",
+            filter: `event_id=eq.${event.id}`,
+          },
+          () => {
+            fetchParticipants();
+          },
+        )
+        .subscribe();
+
+    return () => {
+      supabase.removeChannel(
+        channel,
+      );
+    };
   }, []);
 
   function sendInvitation(
