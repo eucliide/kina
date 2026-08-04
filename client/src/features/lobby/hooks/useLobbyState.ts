@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import {
   loadParticipants,
   sendInvitation as createInvitation,
+  acceptInvitation as acceptInvitationRequest,
+  declineInvitation as declineInvitationRequest,
 } from "../services/lobbyService";
 
 import {
@@ -75,6 +77,10 @@ export function useLobbyState() {
 
     fetchParticipants();
 
+    /*
+     * Keeps the lobby participant list
+     * synchronized between users.
+     */
     const participantChannel =
       supabase
         .channel(
@@ -95,11 +101,21 @@ export function useLobbyState() {
         )
         .subscribe();
 
+    /*
+     * Handles invitations received by
+     * the current participant and
+     * invitations sent by the current
+     * participant.
+     */
     const invitationChannel =
       supabase
         .channel(
           `event-invitations:${currentParticipant.id}`,
         )
+
+        /*
+         * Someone invited me.
+         */
         .on(
           "postgres_changes",
           {
@@ -157,6 +173,71 @@ export function useLobbyState() {
             setState("received");
           },
         )
+
+        /*
+         * Someone accepted an invitation
+         * that I sent.
+         */
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "event_invitations",
+            filter:
+              `sender_id=eq.${currentParticipant.id}`,
+          },
+          async (payload) => {
+            const invitation =
+              payload.new as {
+                id: string;
+                sender_id: string;
+                receiver_id: string;
+                status: string;
+              };
+
+            if (
+              invitation.status !==
+              "accepted"
+            ) {
+              return;
+            }
+
+            try {
+              const {
+                data: partner,
+                error,
+              } = await supabase
+                .from(
+                  "event_participants",
+                )
+                .select(`
+                  id,
+                  display_name,
+                  presence_status
+                `)
+                .eq(
+                  "id",
+                  invitation.receiver_id,
+                )
+                .single();
+
+              if (error) {
+                throw error;
+              }
+
+              createSession({
+                id: partner.id,
+                name:
+                  partner.display_name,
+              });
+
+              navigate("/meeting");
+            } catch (error) {
+              console.error(error);
+            }
+          },
+        )
         .subscribe();
 
     return () => {
@@ -168,7 +249,7 @@ export function useLobbyState() {
         invitationChannel,
       );
     };
-  }, []);
+  }, [navigate]);
 
   async function sendInvitation(
     participant: Participant,
@@ -208,31 +289,51 @@ export function useLobbyState() {
     setState("received");
   }
 
-  function acceptInvitation() {
-    const participant =
-      getJoinedParticipant();
-
-    if (
-      !participant ||
-      !incomingInvitation
-    ) {
-      navigate("/join");
+  async function acceptInvitation() {
+    if (!incomingInvitation) {
       return;
     }
 
-    createSession({
-      id:
-        incomingInvitation.senderId,
-      name:
-        incomingInvitation.senderName,
-    });
+    try {
+      await acceptInvitationRequest(
+        incomingInvitation.id,
+      );
 
-    navigate("/meeting");
+      /*
+       * The RPC has now paired both
+       * participants. The receiver
+       * can enter immediately.
+       */
+      createSession({
+        id:
+          incomingInvitation.senderId,
+        name:
+          incomingInvitation.senderName,
+      });
+
+      setIncomingInvitation(null);
+
+      navigate("/meeting");
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-  function declineInvitation() {
-    setIncomingInvitation(null);
-    setState("available");
+  async function declineInvitation() {
+    if (!incomingInvitation) {
+      return;
+    }
+
+    try {
+      await declineInvitationRequest(
+        incomingInvitation.id,
+      );
+
+      setIncomingInvitation(null);
+      setState("available");
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return {

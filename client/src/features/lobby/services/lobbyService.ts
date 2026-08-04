@@ -63,8 +63,10 @@ export async function registerParticipant(
 }
 
 /**
- * Loads other participants
- * currently in the event.
+ * Loads other participants currently
+ * in the event.
+ *
+ * The current user's own row is excluded.
  */
 export async function loadParticipants(
   eventId: string,
@@ -133,7 +135,7 @@ export async function sendInvitation(
     );
   }
 
-  const { data: sender } =
+  const { data: sender, error: senderError } =
     await supabase
       .from("event_participants")
       .select("id")
@@ -143,6 +145,10 @@ export async function sendInvitation(
         user.id,
       )
       .single();
+
+  if (senderError) {
+    throw senderError;
+  }
 
   if (!sender) {
     throw new Error(
@@ -167,17 +173,21 @@ export async function sendInvitation(
 
 /**
  * Accepts an incoming invitation.
+ *
+ * The database RPC performs the acceptance
+ * atomically and pairs both participants.
  */
 export async function acceptInvitation(
   invitationId: string,
 ): Promise<void> {
   const { error } =
-    await supabase
-      .from("event_invitations")
-      .update({
-        status: "accepted",
-      })
-      .eq("id", invitationId);
+    await supabase.rpc(
+      "accept_event_invitation",
+      {
+        invitation_uuid:
+          invitationId,
+      },
+    );
 
   if (error) {
     throw error;
@@ -204,8 +214,8 @@ export async function declineInvitation(
 }
 
 /**
- * Cancels an invitation
- * that the current user sent.
+ * Cancels an invitation that the
+ * current user sent.
  */
 export async function cancelInvitation(
   invitationId: string,

@@ -38,7 +38,6 @@ export function LobbyContent({
   acceptInvitation,
   declineInvitation,
 }: LobbyContentProps) {
-
   switch (state) {
     case "waiting":
       return <WaitingCard />;
@@ -51,11 +50,21 @@ export function LobbyContent({
               <ParticipantRow
                 key={participant.id}
                 name={participant.name}
-                status={participant.status}
-                onClick={() =>
-                  participant.status === "available" &&
-                  sendInvitation(participant)
+                status={
+                  participant.status
                 }
+                onClick={() => {
+                  if (
+                    participant.status !==
+                    "available"
+                  ) {
+                    return;
+                  }
+
+                  sendInvitation(
+                    participant,
+                  );
+                }}
               />
             ),
           )}
@@ -68,7 +77,9 @@ export function LobbyContent({
           participantName={
             selectedParticipant
           }
-          onCancel={cancelInvitation}
+          onCancel={
+            cancelInvitation
+          }
         />
       );
 

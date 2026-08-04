@@ -44,6 +44,7 @@ export function LobbyPage() {
           />
         </section>
       </Container>
+
       <LobbyDebugPanel setState={setState} />
     </main>
   );
