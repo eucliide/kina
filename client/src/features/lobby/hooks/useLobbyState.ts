@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { loadParticipants } from "../services/lobbyService";
+
 import { createSession } from "@/features/meeting/services/meetingSession";
+
 import {
+  getJoinedEvent,
   getJoinedParticipant,
 } from "@/features/join/services/joinSession";
 
@@ -24,23 +28,32 @@ export function useLobbyState() {
 
   const navigate = useNavigate();
 
-  const participants: Participant[] = [
-    {
-      id: "1",
-      name: "Sarah",
-      status: "available",
-    },
-    {
-      id: "2",
-      name: "Kevin",
-      status: "available",
-    },
-    {
-      id: "3",
-      name: "Alice",
-      status: "inConversation",
-    },
-  ];
+  const [participants, setParticipants] =
+    useState<Participant[]>([]);
+
+  useEffect(() => {
+    async function fetchParticipants() {
+      try {
+        const event =
+          getJoinedEvent();
+
+        if (!event) {
+          return;
+        }
+
+        const loaded =
+          await loadParticipants(
+            event.id,
+          );
+
+        setParticipants(loaded);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    fetchParticipants();
+  }, []);
 
   function sendInvitation(
     name: string,

@@ -7,11 +7,16 @@ import { NamePage } from "@/features/join/pages/NamePage";
 import { LobbyPage } from "@/features/lobby/pages/LobbyPage";
 import { MeetingPage } from "@/features/meeting/pages/MeetingPage";
 import { ReflectionPage } from "@/features/reflection/pages/ReflectionPage";
+import { CreatePage } from "@/features/create/pages/CreatePage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+  },
+  {
+    path: "/create",
+    element: <CreatePage />,
   },
   {
     path: "/join",
