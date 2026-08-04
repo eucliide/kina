@@ -13,7 +13,9 @@ interface LobbyContentProps {
   participants: Participant[];
   selectedParticipant: string;
 
-  sendInvitation: (name: string) => void;
+  sendInvitation: (
+    participant: Participant,
+  ) => void;
   cancelInvitation: () => void;
   acceptInvitation: () => void;
   declineInvitation: () => void;
@@ -42,9 +44,8 @@ export function LobbyContent({
                 name={participant.name}
                 status={participant.status}
                 onClick={() =>
-                  sendInvitation(
-                    participant.name,
-                  )
+                  participant.status === "available" &&
+                  sendInvitation(participant)
                 }
               />
             ),

@@ -5,9 +5,12 @@ import { supabase } from "@/lib/supabase";
 
 import {
   loadParticipants,
+  sendInvitation as createInvitation,
 } from "../services/lobbyService";
 
-import { createSession } from "@/features/meeting/services/meetingSession";
+import {
+  createSession,
+} from "@/features/meeting/services/meetingSession";
 
 import {
   getJoinedEvent,
@@ -21,9 +24,7 @@ import type {
 
 export function useLobbyState() {
   const [state, setState] =
-    useState<LobbyState>(
-      "available",
-    );
+    useState<LobbyState>("available");
 
   const [
     selectedParticipant,
@@ -36,8 +37,7 @@ export function useLobbyState() {
     useState<Participant[]>([]);
 
   useEffect(() => {
-    const event =
-      getJoinedEvent();
+    const event = getJoinedEvent();
 
     if (!event) {
       return;
@@ -46,9 +46,7 @@ export function useLobbyState() {
     async function fetchParticipants() {
       try {
         const loaded =
-          await loadParticipants(
-            event.id,
-          );
+          await loadParticipants(event.id);
 
         setParticipants(loaded);
       } catch (error) {
@@ -58,54 +56,55 @@ export function useLobbyState() {
 
     fetchParticipants();
 
-    const channel =
-      supabase
-        .channel(
-          `event-participants:${event.id}`,
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "event_participants",
-            filter: `event_id=eq.${event.id}`,
-          },
-          () => {
-            fetchParticipants();
-          },
-        )
-        .subscribe();
+    const channel = supabase
+      .channel(
+        `event-participants:${event.id}`,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "event_participants",
+          filter: `event_id=eq.${event.id}`,
+        },
+        () => {
+          fetchParticipants();
+        },
+      )
+      .subscribe();
 
     return () => {
-      supabase.removeChannel(
-        channel,
-      );
+      supabase.removeChannel(channel);
     };
   }, []);
 
-  function sendInvitation(
-    name: string,
+  async function sendInvitation(
+    participant: Participant,
   ) {
-    const participant =
-      participants.find(
-        (item) =>
-          item.name === name,
-      );
+    const event = getJoinedEvent();
 
-    if (!participant) {
+    if (!event) {
+      console.error(
+        "No active event found.",
+      );
       return;
     }
 
-    setSelectedParticipant(
-      participant.id,
-    );
+    try {
+      await createInvitation(
+        event.id,
+        participant.id,
+      );
 
-    createSession(
-      participant,
-    );
+      setSelectedParticipant(
+        participant.name,
+      );
 
-    navigate("/meeting");
+      setState("sent");
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   function cancelInvitation() {
@@ -126,9 +125,7 @@ export function useLobbyState() {
       return;
     }
 
-    createSession(
-      participant,
-    );
+    createSession(participant);
 
     navigate("/meeting");
   }
