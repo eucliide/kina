@@ -1,35 +1,63 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Container } from "@/components/layout";
 import { Heading, Text } from "@/components/ui";
 
-import { NameForm } from "../components/NameForm";
+import { registerParticipant } from "@/features/lobby/services/lobbyService";
 import {
   getJoinedEvent,
   setJoinedParticipant,
 } from "../services/joinSession";
 
+import { NameForm } from "../components/NameForm";
+
 export function NamePage() {
   const navigate = useNavigate();
 
-  function handleContinue(
+  const [error, setError] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  async function handleContinue(
     name: string,
   ) {
     const event =
       getJoinedEvent();
 
     if (!event) {
-      navigate("/join");
+      setError(
+        "No meetup selected.",
+      );
       return;
     }
 
-    setJoinedParticipant({
-      id: crypto.randomUUID(),
-      name,
-      status: "available",
-    });
+    setError("");
+    setLoading(true);
 
-    navigate("/lobby");
+    try {
+      const participant =
+        await registerParticipant(
+          event.id,
+          name,
+        );
+
+      setJoinedParticipant(
+        participant,
+      );
+
+      navigate("/lobby");
+    } catch (error) {
+      console.error(error);
+
+      setError(
+        "Unable to join the meetup.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -46,8 +74,22 @@ export function NamePage() {
 
           <div className="mt-8 max-w-md">
             <NameForm
-              onContinue={handleContinue}
+              onContinue={
+                handleContinue
+              }
             />
+
+            {error && (
+              <p className="mt-3 text-sm text-red-300">
+                {error}
+              </p>
+            )}
+
+            {loading && (
+              <p className="mt-3 text-sm text-white/40">
+                Joining meetup...
+              </p>
+            )}
           </div>
         </section>
       </Container>
