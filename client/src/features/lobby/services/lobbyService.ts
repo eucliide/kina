@@ -33,13 +33,19 @@ export async function registerParticipant(
   const { data, error } =
     await supabase
       .from("event_participants")
-      .insert({
-        event_id: eventId,
-        participant_id: user.id,
-        display_name: displayName,
-        presence_status: "available",
-        partner_rotation: 1,
-      })
+      .upsert(
+        {
+          event_id: eventId,
+          participant_id: user.id,
+          display_name: displayName,
+          presence_status: "available",
+          partner_rotation: 1,
+        },
+        {
+          onConflict:
+            "event_id,participant_id",
+        },
+      )
       .select(`
         id,
         display_name,
