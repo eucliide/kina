@@ -5,6 +5,7 @@ import { Container } from "@/components/layout";
 import { Heading, Text } from "@/components/ui";
 
 import { registerParticipant } from "@/features/lobby/services/lobbyService";
+
 import {
   getJoinedEvent,
   setJoinedParticipant,
@@ -48,7 +49,17 @@ export function NamePage() {
         participant,
       );
 
-      navigate("/lobby");
+      /*
+       * Secret Mission happens before
+       * entering the social space.
+       *
+       * The participant receives their
+       * private intention before meeting
+       * others in the lobby.
+       */
+      navigate(
+        "/secret-mission",
+      );
     } catch (error) {
       console.error(error);
 
