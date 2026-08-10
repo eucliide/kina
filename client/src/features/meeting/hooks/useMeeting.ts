@@ -170,19 +170,10 @@ export function useMeeting() {
                 "transitioning",
               );
 
-              /*
-               * Complete the final chapter.
-               */
               completeCurrentChapter(
                 currentStage.chapter,
               );
 
-              /*
-               * Partner 1, 2, and 3:
-               * return to the lobby so the
-               * participant can intentionally
-               * choose their next partner.
-               */
               if (
                 session.partnerRotation < 4
               ) {
@@ -194,15 +185,14 @@ export function useMeeting() {
               }
 
               /*
-               * Partner 4:
-               * Conversation Journey is
-               * completely finished.
+               * Partner 4 completes the
+               * Conversation Journey.
                *
-               * WNRS handoff will be connected
-               * here next.
+               * Move directly into the
+               * shared WNRS reflection.
                */
               window.setTimeout(() => {
-                setState("transition");
+                navigate("/wnrs");
               }, 1200);
 
               return 0;

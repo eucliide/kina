@@ -8,7 +8,7 @@ import { LobbyPage } from "@/features/lobby/pages/LobbyPage";
 import { MeetingPage } from "@/features/meeting/pages/MeetingPage";
 import { ReflectionPage } from "@/features/reflection/pages/ReflectionPage";
 import { CreatePage } from "@/features/create/pages/CreatePage";
-
+import { WnrsPage } from "@/features/wnrs/pages/WnrsPage";
 import { SecretMissionPage } from "@/features/mission/pages/SecretMissionPage";
 
 export const router =
@@ -53,7 +53,10 @@ export const router =
       path: "/meeting",
       element: <MeetingPage />,
     },
-
+    {
+      path: "/wnrs",
+      element: <WnrsPage />,
+    },
     {
       path: "/reflection",
       element: <ReflectionPage />,
