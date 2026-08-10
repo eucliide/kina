@@ -4,13 +4,14 @@ let activeSession: MeetingSession | null = null;
 
 export function createSession(
   participant: MeetingSession["participant"],
+  partnerRotation = 1,
 ) {
   activeSession = {
     meetingId: crypto.randomUUID(),
 
     participant,
 
-    partnerRotation: 1,
+    partnerRotation,
 
     activityId: "conversationJourney",
 

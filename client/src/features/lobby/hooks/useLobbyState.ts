@@ -12,6 +12,7 @@ import {
 
 import {
   createSession,
+  getSession,
 } from "@/features/meeting/services/meetingSession";
 
 import {
@@ -20,7 +21,6 @@ import {
 } from "@/features/join/services/joinSession";
 
 import type {
-  LobbyState,
   Participant,
 } from "../types";
 
@@ -32,7 +32,7 @@ interface IncomingInvitation {
 
 export function useLobbyState() {
   const [state, setState] =
-    useState<LobbyState>("available");
+    useState("available");
 
   const [
     selectedParticipant,
@@ -58,7 +58,10 @@ export function useLobbyState() {
     const currentParticipant =
       getJoinedParticipant();
 
-    if (!event || !currentParticipant) {
+    if (
+      !event ||
+      !currentParticipant
+    ) {
       return;
     }
 
@@ -66,7 +69,7 @@ export function useLobbyState() {
       try {
         const loaded =
           await loadParticipants(
-            event!.id,
+            event.id,
           );
 
         setParticipants(loaded);
@@ -77,10 +80,6 @@ export function useLobbyState() {
 
     fetchParticipants();
 
-    /*
-     * Keeps the lobby participant list
-     * synchronized between users.
-     */
     const participantChannel =
       supabase
         .channel(
@@ -101,21 +100,11 @@ export function useLobbyState() {
         )
         .subscribe();
 
-    /*
-     * Handles invitations received by
-     * the current participant and
-     * invitations sent by the current
-     * participant.
-     */
     const invitationChannel =
       supabase
         .channel(
           `event-invitations:${currentParticipant.id}`,
         )
-
-        /*
-         * Someone invited me.
-         */
         .on(
           "postgres_changes",
           {
@@ -173,11 +162,6 @@ export function useLobbyState() {
             setState("received");
           },
         )
-
-        /*
-         * Someone accepted an invitation
-         * that I sent.
-         */
         .on(
           "postgres_changes",
           {
@@ -226,11 +210,34 @@ export function useLobbyState() {
                 throw error;
               }
 
-              createSession({
-                id: partner.id,
-                name:
-                  partner.display_name,
-              });
+              /*
+               * If this is a new conversation
+               * after returning to the lobby,
+               * advance to the next partner rotation.
+               *
+               * The first meeting has no existing
+               * session, so it starts at rotation 1.
+               */
+              const previousSession =
+                getSession();
+
+              const nextRotation =
+                previousSession
+                  ? Math.min(
+                      previousSession.partnerRotation +
+                        1,
+                      4,
+                    )
+                  : 1;
+
+              createSession(
+                {
+                  id: partner.id,
+                  name:
+                    partner.display_name,
+                },
+                nextRotation,
+              );
 
               navigate("/meeting");
             } catch (error) {
@@ -300,16 +307,30 @@ export function useLobbyState() {
       );
 
       /*
-       * The RPC has now paired both
-       * participants. The receiver
-       * can enter immediately.
+       * The RPC has paired both
+       * participants.
        */
-      createSession({
-        id:
-          incomingInvitation.senderId,
-        name:
-          incomingInvitation.senderName,
-      });
+      const previousSession =
+        getSession();
+
+      const nextRotation =
+        previousSession
+          ? Math.min(
+              previousSession.partnerRotation +
+                1,
+              4,
+            )
+          : 1;
+
+      createSession(
+        {
+          id:
+            incomingInvitation.senderId,
+          name:
+            incomingInvitation.senderName,
+        },
+        nextRotation,
+      );
 
       setIncomingInvitation(null);
 

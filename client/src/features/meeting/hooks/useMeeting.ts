@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import type { MeetingState } from "../types/meetingState";
-import type { ChapterTransitionState } from "../types/chapterTransition";
 import type { ConversationPrompt } from "@/features/activity/types/conversationPrompt";
 
 import { getConversationPrompt } from "@/features/activity/services/conversationJourneyService";
@@ -21,8 +20,10 @@ import {
 import type { MeetingSession } from "../types";
 
 export function useMeeting() {
+  const navigate = useNavigate();
+
   const [state, setState] =
-    useState<MeetingState>("meeting");
+    useState("meeting");
 
   const [currentPrompt, setCurrentPrompt] =
     useState<
@@ -32,13 +33,10 @@ export function useMeeting() {
   const [
     transitionState,
     setTransitionState,
-  ] =
-    useState<ChapterTransitionState>(
-      "idle",
-    );
+  ] = useState("idle");
 
   const [session, setSession] =
-    useState<MeetingSession>(() => {
+    useState(() => {
       const existing = getSession();
 
       if (!existing) {
@@ -57,9 +55,10 @@ export function useMeeting() {
     session.partnerRotation,
   );
 
-  const currentStage = getCurrentStage(
-    session.currentStageId,
-  );
+  const currentStage =
+    getCurrentStage(
+      session.currentStageId,
+    );
 
   if (!currentStage) {
     throw new Error(
@@ -111,15 +110,17 @@ export function useMeeting() {
 
   /*
    * The timer belongs to the current stage.
-   * Therefore every stage gets its own duration.
    */
   const [
     remainingSeconds,
     setRemainingSeconds,
-  ] = useState(currentStage.duration);
+  ] = useState(
+    currentStage.duration,
+  );
 
   /*
-   * Reset the timer whenever the stage changes.
+   * Reset the timer whenever the
+   * stage changes.
    */
   useEffect(() => {
     setRemainingSeconds(
@@ -140,7 +141,10 @@ export function useMeeting() {
       return;
     }
 
-    if (transitionState === "transitioning") {
+    if (
+      transitionState ===
+      "transitioning"
+    ) {
       return;
     }
 
@@ -158,14 +162,45 @@ export function useMeeting() {
               );
 
             /*
-             * No more stages:
-             * Conversation Journey is complete.
+             * Current partner's Conversation
+             * Journey is complete.
              */
             if (!nextStage) {
               setTransitionState(
                 "transitioning",
               );
 
+              /*
+               * Complete the final chapter.
+               */
+              completeCurrentChapter(
+                currentStage.chapter,
+              );
+
+              /*
+               * Partner 1, 2, and 3:
+               * return to the lobby so the
+               * participant can intentionally
+               * choose their next partner.
+               */
+              if (
+                session.partnerRotation < 4
+              ) {
+                window.setTimeout(() => {
+                  navigate("/lobby");
+                }, 1200);
+
+                return 0;
+              }
+
+              /*
+               * Partner 4:
+               * Conversation Journey is
+               * completely finished.
+               *
+               * WNRS handoff will be connected
+               * here next.
+               */
               window.setTimeout(() => {
                 setState("transition");
               }, 1200);
@@ -181,8 +216,8 @@ export function useMeeting() {
               currentStage.chapter,
             );
 
-            const updatedSession: MeetingSession =
-              {
+            const updatedSession:
+              MeetingSession = {
                 ...session,
                 currentStageId:
                   nextStage.id,
@@ -190,7 +225,8 @@ export function useMeeting() {
 
             /*
              * Give the transition UI time
-             * to appear before changing content.
+             * to appear before changing
+             * content.
              */
             setTransitionState(
               "transitioning",
@@ -221,13 +257,11 @@ export function useMeeting() {
     session,
     currentStage,
     completeCurrentChapter,
+    navigate,
   ]);
 
   /*
    * Temporary timing hooks.
-   *
-   * The actual audio cue can be connected
-   * here without changing the timer logic.
    */
   useEffect(() => {
     if (
