@@ -3,20 +3,71 @@ import { useEffect, useState } from "react";
 import { Container } from "@/components/layout";
 import { Button, Heading, Text } from "@/components/ui";
 
+import { supabase } from "@/lib/supabase";
+
 import {
   getTableTopicsPrompt,
   type TableTopicsPrompt,
 } from "../services/tableTopicsService";
 
+import {
+  getJoinedEvent,
+  getJoinedParticipant,
+} from "@/features/join/services/joinSession";
+
+interface TableParticipant {
+  id: string;
+  name: string;
+}
+
 export function TableTopicsPage() {
   const [prompt, setPrompt] =
     useState<TableTopicsPrompt | undefined>();
+
+  const [participants, setParticipants] =
+    useState<TableParticipant[]>([]);
+
+  const [nudgedParticipant, setNudgedParticipant] =
+    useState<TableParticipant | null>(null);
+
+  const [nudgedIds, setNudgedIds] =
+    useState<string[]>([]);
 
   const [loading, setLoading] =
     useState(true);
 
   const [error, setError] =
     useState(false);
+
+  async function loadParticipants() {
+    const event = getJoinedEvent();
+
+    if (!event) {
+      throw new Error("No active event.");
+    }
+
+    const { data, error } = await supabase
+      .from("event_participants")
+      .select(`
+        id,
+        display_name
+      `)
+      .eq("event_id", event.id)
+      .order("joined_at", {
+        ascending: true,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    setParticipants(
+      (data ?? []).map((participant) => ({
+        id: participant.id,
+        name: participant.display_name,
+      })),
+    );
+  }
 
   async function loadPrompt() {
     try {
@@ -27,9 +78,11 @@ export function TableTopicsPage() {
         await getTableTopicsPrompt();
 
       setPrompt(nextPrompt);
+
+      await loadParticipants();
     } catch (error) {
       console.error(
-        "Failed to load TableTopics prompt:",
+        "Failed to load TableTopics:",
         error,
       );
 
@@ -37,6 +90,69 @@ export function TableTopicsPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function chooseNextReader() {
+    if (participants.length === 0) {
+      return;
+    }
+
+    const currentParticipant =
+      getJoinedParticipant();
+
+    /*
+     * Prioritize participants who have
+     * not been nudged yet.
+     */
+    let availableParticipants =
+      participants.filter(
+        (participant) =>
+          !nudgedIds.includes(participant.id),
+      );
+
+    /*
+     * Once everyone has been nudged,
+     * start a fresh cycle.
+     */
+    if (availableParticipants.length === 0) {
+      setNudgedIds([]);
+      availableParticipants = participants;
+    }
+
+    /*
+     * Avoid selecting the current user
+     * when another participant is available.
+     */
+    if (
+      availableParticipants.length > 1 &&
+      currentParticipant
+    ) {
+      availableParticipants =
+        availableParticipants.filter(
+          (participant) =>
+            participant.id !==
+            currentParticipant.id,
+        );
+    }
+
+    const randomIndex = Math.floor(
+      Math.random() *
+        availableParticipants.length,
+    );
+
+    const selected =
+      availableParticipants[randomIndex];
+
+    if (!selected) {
+      return;
+    }
+
+    setNudgedParticipant(selected);
+
+    setNudgedIds((previous) => [
+      ...previous,
+      selected.id,
+    ]);
   }
 
   useEffect(() => {
@@ -65,6 +181,15 @@ export function TableTopicsPage() {
           <Heading className="mt-4">
             One table. One conversation.
           </Heading>
+
+          {nudgedParticipant && (
+            <Text className="mt-5 text-white/70">
+              <span className="text-white">
+                {nudgedParticipant.name}
+              </span>
+              , read the next one.
+            </Text>
+          )}
 
           <div
             className="
@@ -97,13 +222,24 @@ export function TableTopicsPage() {
             )}
           </div>
 
-          <Button
-            className="mt-8"
-            onClick={loadPrompt}
-            disabled={loading}
-          >
-            Next topic
-          </Button>
+          <div className="mt-8 flex gap-3">
+            <Button
+              onClick={chooseNextReader}
+              disabled={
+                loading ||
+                participants.length === 0
+              }
+            >
+              Choose reader
+            </Button>
+
+            <Button
+              onClick={loadPrompt}
+              disabled={loading}
+            >
+              Next topic
+            </Button>
+          </div>
         </section>
       </Container>
     </main>
