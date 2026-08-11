@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 import type { ConversationPrompt } from "../types/conversationPrompt";
 
-interface DatabasePrompt {
+interface DatabaseConversationPrompt {
   id: string;
   activity_id: string;
   partner_rotation: number;
@@ -13,12 +13,21 @@ interface DatabasePrompt {
   is_active: boolean;
 }
 
+interface DatabaseWnrsPrompt {
+  id: string;
+  activity_id: string;
+  prompt_text: string;
+  prompt_order: number;
+  is_active: boolean;
+}
+
 /**
- * Returns the shared prompt for the
- * current partner rotation and stage.
+ * Returns the shared Conversation Journey
+ * prompt for the current partner rotation
+ * and stage.
  *
- * Conversation Journey content is
- * loaded from Supabase.
+ * Conversation Journey content is loaded
+ * from Supabase.
  */
 export async function getConversationPrompt(
   partnerRotation: number,
@@ -26,18 +35,16 @@ export async function getConversationPrompt(
 ): Promise<ConversationPrompt | undefined> {
   const { data, error } = await supabase
     .from("prompts")
-    .select(
-      `
-        id,
-        activity_id,
-        partner_rotation,
-        chapter,
-        stage_id,
-        prompt_text,
-        prompt_order,
-        is_active
-      `,
-    )
+    .select(`
+      id,
+      activity_id,
+      partner_rotation,
+      chapter,
+      stage_id,
+      prompt_text,
+      prompt_order,
+      is_active
+    `)
     .eq(
       "activity_id",
       "conversationJourney",
@@ -65,11 +72,63 @@ export async function getConversationPrompt(
   }
 
   const prompt =
-    data as DatabasePrompt;
+    data as DatabaseConversationPrompt;
 
   return {
     id: prompt.id,
     stageId: prompt.stage_id,
+    text: prompt.prompt_text,
+  };
+}
+
+/**
+ * Returns one random WNRS-inspired
+ * shared reflection prompt.
+ *
+ * WNRS prompts are stored in the
+ * shared prompts table and are not
+ * tied to Conversation Journey stages.
+ */
+export async function getWnrsPrompt(): Promise<
+  ConversationPrompt | undefined
+> {
+  const { data, error } = await supabase
+    .from("prompts")
+    .select(`
+      id,
+      activity_id,
+      prompt_text,
+      prompt_order,
+      is_active
+    `)
+    .eq("activity_id", "wnrs")
+    .eq("is_active", true)
+    .order("prompt_order", {
+      ascending: true,
+    });
+
+  if (error) {
+    throw new Error(
+      `Failed to load WNRS prompt: ${error.message}`,
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return undefined;
+  }
+
+  const prompts =
+    data as DatabaseWnrsPrompt[];
+
+  const randomIndex = Math.floor(
+    Math.random() * prompts.length,
+  );
+
+  const prompt = prompts[randomIndex];
+
+  return {
+    id: prompt.id,
+    stageId: "wnrs",
     text: prompt.prompt_text,
   };
 }

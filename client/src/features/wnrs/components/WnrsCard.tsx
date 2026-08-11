@@ -1,9 +1,7 @@
 import { Heading, Text } from "@/components/ui";
 
-import type { WnrsPrompt } from "../types/wnrs";
-
 interface WnrsCardProps {
-  prompt: WnrsPrompt;
+  prompt: string;
 }
 
 export function WnrsCard({
@@ -15,50 +13,60 @@ export function WnrsCard({
         rounded-3xl
         border
         border-white/10
-        bg-white/[0.04]
-        p-8
-        shadow-2xl
-        backdrop-blur
+        bg-white/5
+        p-10
+        text-center
       "
     >
       <Text
         className="
-          text-sm
           uppercase
           tracking-[0.2em]
           text-white/40
         "
       >
-        Shared Reflection
+        One last thing
       </Text>
 
       <Heading className="mt-4">
-        Take a moment together.
+        Share something real.
       </Heading>
 
       <Text
         className="
-          mt-6
-          text-xl
+          mx-auto
+          mt-4
+          max-w-lg
           leading-relaxed
-          text-white/85
+          text-white/60
         "
       >
-        {prompt.text}
+        Take a moment with each other.
+        Answer honestly, then give the
+        other person space to share.
       </Text>
 
-      <Text
+      <div
         className="
-          mt-6
-          text-sm
-          leading-relaxed
-          text-white/45
+          mt-10
+          rounded-2xl
+          border
+          border-white/10
+          bg-white/5
+          px-8
+          py-8
         "
       >
-        There is no right answer.
-        Listen, share, and let the
-        conversation unfold.
-      </Text>
+        <Text
+          className="
+            text-lg
+            leading-relaxed
+            text-white
+          "
+        >
+          {prompt}
+        </Text>
+      </div>
     </section>
   );
 }

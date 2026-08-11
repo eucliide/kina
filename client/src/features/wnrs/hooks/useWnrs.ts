@@ -1,20 +1,48 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+
+import type { ConversationPrompt } from "@/features/activity/types/conversationPrompt";
 
 import {
-  WNRS_PROMPTS,
-} from "../data/prompts";
+  getWnrsPrompt,
+} from "@/features/activity/services/conversationJourneyService";
 
 export function useWnrs() {
-  const prompt = useMemo(() => {
-    const index = Math.floor(
-      Math.random() *
-        WNRS_PROMPTS.length,
-    );
+  const [prompt, setPrompt] =
+    useState<
+      ConversationPrompt | undefined
+    >();
 
-    return WNRS_PROMPTS[index];
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPrompt() {
+      try {
+        const loaded =
+          await getWnrsPrompt();
+
+        if (!cancelled) {
+          setPrompt(loaded);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load WNRS prompt:",
+          error,
+        );
+
+        if (!cancelled) {
+          setPrompt(undefined);
+        }
+      }
+    }
+
+    loadPrompt();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return {
-    prompt,
+    prompt: prompt?.text,
   };
 }

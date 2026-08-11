@@ -17,13 +17,7 @@ export function WnrsPage() {
   }
 
   return (
-    <main
-      className="
-        min-h-screen
-        bg-[#07111f]
-        text-white
-      "
-    >
+    <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
         <section
           className="
@@ -36,7 +30,10 @@ export function WnrsPage() {
           "
         >
           <WnrsCard
-            prompt={prompt}
+            prompt={
+              prompt ??
+              "Take a moment to reflect together."
+            }
           />
 
           <WnrsActions
