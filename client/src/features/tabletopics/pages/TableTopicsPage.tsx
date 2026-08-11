@@ -1,7 +1,48 @@
+import { useEffect, useState } from "react";
+
 import { Container } from "@/components/layout";
 import { Button, Heading, Text } from "@/components/ui";
 
+import {
+  getTableTopicsPrompt,
+  type TableTopicsPrompt,
+} from "../services/tableTopicsService";
+
 export function TableTopicsPage() {
+  const [prompt, setPrompt] =
+    useState<TableTopicsPrompt | undefined>();
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState(false);
+
+  async function loadPrompt() {
+    try {
+      setLoading(true);
+      setError(false);
+
+      const nextPrompt =
+        await getTableTopicsPrompt();
+
+      setPrompt(nextPrompt);
+    } catch (error) {
+      console.error(
+        "Failed to load TableTopics prompt:",
+        error,
+      );
+
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadPrompt();
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
@@ -25,12 +66,43 @@ export function TableTopicsPage() {
             One table. One conversation.
           </Heading>
 
-          <Text className="mt-5 max-w-md text-white/60">
-            Come together, take a seat, and let the conversation unfold.
-          </Text>
+          <div
+            className="
+              mt-10
+              w-full
+              rounded-3xl
+              border
+              border-white/10
+              bg-white/5
+              px-8
+              py-8
+            "
+          >
+            {loading ? (
+              <Text className="text-white/50">
+                Preparing a topic…
+              </Text>
+            ) : error ? (
+              <Text className="text-white/50">
+                We couldn't load a topic.
+              </Text>
+            ) : prompt ? (
+              <Text className="text-lg leading-relaxed text-white">
+                {prompt.text}
+              </Text>
+            ) : (
+              <Text className="text-white/50">
+                No topics are available yet.
+              </Text>
+            )}
+          </div>
 
-          <Button className="mt-10">
-            Begin
+          <Button
+            className="mt-8"
+            onClick={loadPrompt}
+            disabled={loading}
+          >
+            Next topic
           </Button>
         </section>
       </Container>
