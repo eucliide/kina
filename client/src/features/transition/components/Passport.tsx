@@ -7,7 +7,6 @@ interface PassportProps {
 }
 
 export function Passport({
-  partnerName,
   activityName,
 }: PassportProps) {
   return (
