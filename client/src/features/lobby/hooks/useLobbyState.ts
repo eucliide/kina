@@ -21,6 +21,7 @@ import {
 } from "@/features/join/services/joinSession";
 
 import type {
+  LobbyState,
   Participant,
 } from "../types";
 
@@ -32,7 +33,7 @@ interface IncomingInvitation {
 
 export function useLobbyState() {
   const [state, setState] =
-    useState("available");
+    useState<LobbyState>("available");
 
   const [
     selectedParticipant,
@@ -69,7 +70,7 @@ export function useLobbyState() {
       try {
         const loaded =
           await loadParticipants(
-            event.id,
+            event!.id,
           );
 
         setParticipants(loaded);
@@ -235,6 +236,7 @@ export function useLobbyState() {
                   id: partner.id,
                   name:
                     partner.display_name,
+                  status: "inConversation",
                 },
                 nextRotation,
               );
@@ -328,6 +330,7 @@ export function useLobbyState() {
             incomingInvitation.senderId,
           name:
             incomingInvitation.senderName,
+          status: "inConversation",
         },
         nextRotation,
       );
