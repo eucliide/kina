@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { ConversationPrompt } from "@/features/activity/types/conversationPrompt";
@@ -122,11 +122,10 @@ export function useMeeting() {
    * Reset the timer whenever the
    * stage changes.
    */
-  useEffect(() => {
-    setRemainingSeconds(
+  useLayoutEffect(() => {
+    setRemainingSeconds( // eslint-disable-line react-hooks/set-state-in-effect
       currentStage.duration,
     );
-
     setTransitionState("idle");
   }, [
     session.currentStageId,
