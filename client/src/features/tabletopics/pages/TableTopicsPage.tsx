@@ -10,11 +10,6 @@ import {
   type TableTopicsPrompt,
 } from "../services/tableTopicsService";
 
-import {
-  getJoinedEvent,
-  getJoinedParticipant,
-} from "@/features/join/services/joinSession";
-
 interface TableParticipant {
   id: string;
   name: string;
@@ -27,11 +22,11 @@ export function TableTopicsPage() {
   const [participants, setParticipants] =
     useState<TableParticipant[]>([]);
 
-  const [nudgedParticipant, setNudgedParticipant] =
-    useState<TableParticipant | null>(null);
-
   const [nudgedIds, setNudgedIds] =
     useState<string[]>([]);
+
+  const [nudgedParticipant, setNudgedParticipant] =
+    useState<TableParticipant | null>(null);
 
   const [loading, setLoading] =
     useState(true);
@@ -40,19 +35,23 @@ export function TableTopicsPage() {
     useState(false);
 
   async function loadParticipants() {
-    const event = getJoinedEvent();
-
-    if (!event) {
-      throw new Error("No active event.");
-    }
-
-    const { data, error } = await supabase
+    const {
+      data: eventParticipants,
+      error,
+    } = await supabase
       .from("event_participants")
       .select(`
         id,
         display_name
       `)
-      .eq("event_id", event.id)
+      .eq(
+        "event_id",
+        (
+          await import(
+            "@/features/join/services/joinSession"
+          )
+        ).getJoinedEvent()?.id,
+      )
       .order("joined_at", {
         ascending: true,
       });
@@ -62,14 +61,44 @@ export function TableTopicsPage() {
     }
 
     setParticipants(
-      (data ?? []).map((participant) => ({
-        id: participant.id,
-        name: participant.display_name,
-      })),
+      (eventParticipants ?? []).map(
+        (participant) => ({
+          id: participant.id,
+          name: participant.display_name,
+        }),
+      ),
     );
   }
 
-  async function loadPrompt() {
+  function chooseNextReader(
+    availableParticipants: TableParticipant[],
+    alreadyNudged: string[],
+  ) {
+    if (availableParticipants.length === 0) {
+      return null;
+    }
+
+    let candidates =
+      availableParticipants.filter(
+        (participant) =>
+          !alreadyNudged.includes(
+            participant.id,
+          ),
+      );
+
+    if (candidates.length === 0) {
+      candidates = availableParticipants;
+      setNudgedIds([]);
+    }
+
+    const randomIndex = Math.floor(
+      Math.random() * candidates.length,
+    );
+
+    return candidates[randomIndex] ?? null;
+  }
+
+  async function loadTopic() {
     try {
       setLoading(true);
       setError(false);
@@ -79,7 +108,23 @@ export function TableTopicsPage() {
 
       setPrompt(nextPrompt);
 
-      await loadParticipants();
+      /*
+       * Select the next reader only after
+       * the topic has successfully loaded.
+       */
+      const reader = chooseNextReader(
+        participants,
+        nudgedIds,
+      );
+
+      if (reader) {
+        setNudgedParticipant(reader);
+
+        setNudgedIds((previous) => [
+          ...previous,
+          reader.id,
+        ]);
+      }
     } catch (error) {
       console.error(
         "Failed to load TableTopics:",
@@ -92,72 +137,42 @@ export function TableTopicsPage() {
     }
   }
 
-  function chooseNextReader() {
+  useEffect(() => {
+    async function initialise() {
+      try {
+        setLoading(true);
+
+        await loadParticipants();
+      } catch (error) {
+        console.error(
+          "Failed to initialise TableTopics:",
+          error,
+        );
+
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    initialise();
+  }, []);
+
+  /*
+   * Load the first topic once the participant
+   * list is available.
+   */
+  useEffect(() => {
     if (participants.length === 0) {
       return;
     }
 
-    const currentParticipant =
-      getJoinedParticipant();
-
-    /*
-     * Prioritize participants who have
-     * not been nudged yet.
-     */
-    let availableParticipants =
-      participants.filter(
-        (participant) =>
-          !nudgedIds.includes(participant.id),
-      );
-
-    /*
-     * Once everyone has been nudged,
-     * start a fresh cycle.
-     */
-    if (availableParticipants.length === 0) {
-      setNudgedIds([]);
-      availableParticipants = participants;
-    }
-
-    /*
-     * Avoid selecting the current user
-     * when another participant is available.
-     */
-    if (
-      availableParticipants.length > 1 &&
-      currentParticipant
-    ) {
-      availableParticipants =
-        availableParticipants.filter(
-          (participant) =>
-            participant.id !==
-            currentParticipant.id,
-        );
-    }
-
-    const randomIndex = Math.floor(
-      Math.random() *
-        availableParticipants.length,
-    );
-
-    const selected =
-      availableParticipants[randomIndex];
-
-    if (!selected) {
+    if (prompt) {
       return;
     }
 
-    setNudgedParticipant(selected);
-
-    setNudgedIds((previous) => [
-      ...previous,
-      selected.id,
-    ]);
-  }
-
-  useEffect(() => {
-    loadPrompt();
-  }, []);
+    loadTopic();
+  }, [participants]);
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
@@ -222,24 +237,13 @@ export function TableTopicsPage() {
             )}
           </div>
 
-          <div className="mt-8 flex gap-3">
-            <Button
-              onClick={chooseNextReader}
-              disabled={
-                loading ||
-                participants.length === 0
-              }
-            >
-              Choose reader
-            </Button>
-
-            <Button
-              onClick={loadPrompt}
-              disabled={loading}
-            >
-              Next topic
-            </Button>
-          </div>
+          <Button
+            className="mt-8"
+            onClick={loadTopic}
+            disabled={loading}
+          >
+            Next topic
+          </Button>
         </section>
       </Container>
     </main>
