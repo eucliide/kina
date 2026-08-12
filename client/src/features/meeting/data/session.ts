@@ -6,11 +6,14 @@ export const meetingSession: MeetingSession = {
   participant: {
     id: "1",
     name: "Sarah",
+    status: "available",
   },
 
-  round: 1,
+  partnerRotation: 1,
 
-  phase: "conversation",
+  activityId: "conversationJourney",
+
+  currentStageId: "gettingComfortable",
 
   startedAt: new Date(),
 };
