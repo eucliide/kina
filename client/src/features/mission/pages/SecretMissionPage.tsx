@@ -3,7 +3,11 @@ import { Heading, Text } from "@/components/ui";
 
 import { useSecretMission } from "../hooks/useSecretMission";
 
-export function SecretMissionPage() {
+interface SecretMissionPageProps {
+  onContinue?: () => void;
+}
+
+export function SecretMissionPage({ onContinue }: SecretMissionPageProps) {
   const {
     mission,
     loading,
@@ -72,6 +76,29 @@ export function SecretMissionPage() {
           >
             {mission.text}
           </div>
+
+          {onContinue && (
+            <button
+              type="button"
+              onClick={onContinue}
+              className="
+                mt-8
+                rounded-full
+                border
+                border-white/15
+                bg-white/5
+                px-6
+                py-3
+                text-sm
+                font-medium
+                text-white
+                transition
+                hover:bg-white/10
+              "
+            >
+              Enter the lobby
+            </button>
+          )}
         </section>
       </Container>
     </main>
