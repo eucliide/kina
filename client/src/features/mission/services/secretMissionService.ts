@@ -156,7 +156,7 @@ export async function getOrCreateSecretMission(
 
   const usedMissionIds =
     usedAssignments?.map(
-      (item) =>
+      (item: { mission_id: string }) =>
         item.mission_id,
     ) ?? [];
 
