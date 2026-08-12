@@ -21,6 +21,11 @@ interface DatabaseWnrsPrompt {
   is_active: boolean;
 }
 
+export interface WnrsPromptResult {
+  id: string;
+  text: string;
+}
+
 /**
  * Returns the shared Conversation Journey
  * prompt for the current partner rotation
@@ -76,7 +81,7 @@ export async function getConversationPrompt(
 
   return {
     id: prompt.id,
-    stageId: prompt.stage_id,
+    stageId: prompt.stage_id as ConversationPrompt["stageId"],
     text: prompt.prompt_text,
   };
 }
@@ -90,7 +95,7 @@ export async function getConversationPrompt(
  * tied to Conversation Journey stages.
  */
 export async function getWnrsPrompt(): Promise<
-  ConversationPrompt | undefined
+  WnrsPromptResult | undefined
 > {
   const { data, error } = await supabase
     .from("prompts")
@@ -128,7 +133,6 @@ export async function getWnrsPrompt(): Promise<
 
   return {
     id: prompt.id,
-    stageId: "wnrs",
     text: prompt.prompt_text,
   };
 }
