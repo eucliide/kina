@@ -62,7 +62,7 @@ export function TableTopicsPage() {
 
     setParticipants(
       (eventParticipants ?? []).map(
-        (participant) => ({
+        (participant: { id: string; display_name: string }) => ({
           id: participant.id,
           name: participant.display_name,
         }),
@@ -171,8 +171,13 @@ export function TableTopicsPage() {
       return;
     }
 
-    loadTopic();
-  }, [participants]);
+    async function loadFirstTopic() {
+      await loadTopic();
+    }
+
+    void loadFirstTopic();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participants.length]);
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
