@@ -1,4 +1,4 @@
-type Presence = "available" | "busy";
+type Presence = "available" | "inConversation";
 
 interface PresenceDotProps {
   status: Presence;
