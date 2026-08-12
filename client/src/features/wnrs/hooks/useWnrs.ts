@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 
-import type { ConversationPrompt } from "@/features/activity/types/conversationPrompt";
-
 import {
   getWnrsPrompt,
+  type WnrsPromptResult,
 } from "@/features/activity/services/conversationJourneyService";
 
 export function useWnrs() {
   const [prompt, setPrompt] =
     useState<
-      ConversationPrompt | undefined
+      WnrsPromptResult | undefined
     >();
 
   useEffect(() => {
