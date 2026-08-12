@@ -21,6 +21,15 @@ export interface Participant {
 
   /** Current partner (if paired) */
   currentPartnerId?: string;
+
+  /** Number of completed meetings this event */
+  meetingsCompleted: number;
+
+  /** Number of rotations this participant waited */
+  waitCount: number;
+
+  /** IDs of participants already met */
+  metParticipantIds: string[];
 }
 
 /**

@@ -10,6 +10,7 @@ import { ReflectionPage } from "@/features/reflection/pages/ReflectionPage";
 import { CreatePage } from "@/features/create/pages/CreatePage";
 import { WnrsPage } from "@/features/wnrs/pages/WnrsPage";
 import { GatherAroundPage } from "@/features/gather-around/pages/GatherAroundPage";
+import { TableTopicsPage } from "@/features/tabletopics/pages/TableTopicsPage";
 import { SecretMissionPage } from "@/features/mission/pages/SecretMissionPage";
 
 export const router =
@@ -62,6 +63,10 @@ export const router =
       path: "/gather-around",
       element: <GatherAroundPage />,
     },
+    {
+          path: "/tabletopics",
+          element: <TableTopicsPage />,
+        },
     {
       path: "/reflection",
       element: <ReflectionPage />,
