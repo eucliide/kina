@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import { supabase } from "@/lib/supabase";
 
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
 import {
   loadParticipants,
   sendInvitation as createInvitation,
@@ -115,7 +117,12 @@ export function useLobbyState() {
             filter:
               `receiver_id=eq.${currentParticipant.id}`,
           },
-          async (payload) => {
+          async (payload: RealtimePostgresChangesPayload<{
+              id: string;
+              sender_id: string;
+              receiver_id: string;
+              status: string;
+            }>) => {
             const invitation =
               payload.new as {
                 id: string;
@@ -172,7 +179,12 @@ export function useLobbyState() {
             filter:
               `sender_id=eq.${currentParticipant.id}`,
           },
-          async (payload) => {
+          async (payload: RealtimePostgresChangesPayload<{
+              id: string;
+              sender_id: string;
+              receiver_id: string;
+              status: string;
+            }>) => {
             const invitation =
               payload.new as {
                 id: string;
