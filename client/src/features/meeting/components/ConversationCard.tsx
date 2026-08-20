@@ -1,25 +1,12 @@
-import { Text } from "@/components/ui";
+import { motion, AnimatePresence } from "framer-motion";
+
+import { Label, Text } from "@/components/ui";
+import { contentAdvance, contentSwap } from "@/lib/motion";
 
 interface ConversationCardProps {
-  /**
-   * Current Conversation Journey chapter.
-   */
   chapter: number;
-
-  /**
-   * Current stage title.
-   */
   stageTitle: string;
-
-  /**
-   * Shared prompt.
-   */
   question: string;
-
-  /**
-   * Whether the chapter
-   * is currently transitioning.
-   */
   transitioning: boolean;
 }
 
@@ -30,85 +17,50 @@ export function ConversationCard({
   transitioning,
 }: ConversationCardProps) {
   return (
-    <section
-      className="
-        rounded-3xl
-        border
-        border-white/10
-        bg-white/5
-        p-12
-        backdrop-blur
-        transition-all
-        duration-500
-      "
-    >
-      <Text
-        className="
-          text-xs
-          uppercase
-          tracking-[0.30em]
-          text-white/45
-        "
-      >
-        Conversation Journey
-      </Text>
+    <section className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur sm:p-10">
+      {/* PROGRESS — chapter label advances forward */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={chapter}
+          variants={contentAdvance}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          <Label>Chapter {chapter}</Label>
+          <Text className="mt-2 text-sm text-white/50">{stageTitle}</Text>
+        </motion.div>
+      </AnimatePresence>
 
-      <Text
-        className="
-          mt-3
-          text-lg
-          font-medium
-          text-emerald-300
-        "
-      >
-        Chapter {chapter} · {stageTitle}
-      </Text>
-
-      <div
-        key={stageTitle}
-        className="
-          mt-8
-          min-h-[180px]
-          flex
-          items-center
-          justify-center
-          transition-all
-          duration-700
-        "
-      >
-        {transitioning ? (
-          <div className="text-center fade-up">
-            <Text
-              className="
-                text-2xl
-                font-semibold
-                text-emerald-300
-              "
+      <div className="mt-8 min-h-[140px] flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {transitioning ? (
+            /* TRANSITION — brief pause between chapters */
+            <motion.div
+              key="transitioning"
+              variants={contentSwap}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="text-center"
             >
-              ✓ Chapter Complete
-            </Text>
-
-            <Text
-              className="
-                mt-4
-                text-white/60
-              "
+              <Text className="text-white/35">Next chapter…</Text>
+            </motion.div>
+          ) : (
+            /* ARRIVAL — new question arrives */
+            <motion.div
+              key={`${chapter}-${stageTitle}`}
+              variants={contentAdvance}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              Preparing next chapter...
-            </Text>
-          </div>
-        ) : (
-          <Text
-            className="
-              fade-up
-              text-3xl
-              leading-relaxed
-              text-white
-            "
-          >
-            {question}
-          </Text>
-        )}
+              <Text className="text-xl leading-relaxed text-white sm:text-2xl">
+                {question}
+              </Text>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
