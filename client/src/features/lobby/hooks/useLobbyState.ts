@@ -7,15 +7,20 @@ import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 import {
   loadParticipants,
-  sendInvitation as createInvitation,
   acceptInvitation as acceptInvitationRequest,
   declineInvitation as declineInvitationRequest,
+  cancelInvitation as cancelInvitationRequest,
+  updatePresenceStatus,
 } from "../services/lobbyService";
 
 import {
   createSession,
   getSession,
 } from "@/features/meeting/services/meetingSession";
+
+import {
+  TOTAL_PARTNER_ROTATIONS,
+} from "@/features/event/constants/event";
 
 import {
   getJoinedEvent,
@@ -33,6 +38,34 @@ interface IncomingInvitation {
   senderName: string;
 }
 
+/**
+ * Computes the next rotation number,
+ * marks the current user as inConversation,
+ * and creates the meeting session.
+ *
+ * Single source of truth for rotation
+ * advancement — used by both the sender
+ * (invitation accepted) and the receiver
+ * (accept button).
+ */
+async function startConversation(
+  eventId: string,
+  partner: Participant,
+): Promise<void> {
+  const previous = getSession();
+
+  const nextRotation = previous
+    ? Math.min(
+        previous.partnerRotation + 1,
+        TOTAL_PARTNER_ROTATIONS,
+      )
+    : 1;
+
+  await updatePresenceStatus(eventId, "inConversation");
+
+  createSession(partner, nextRotation);
+}
+
 export function useLobbyState() {
   const [state, setState] =
     useState<LobbyState>("available");
@@ -41,6 +74,11 @@ export function useLobbyState() {
     selectedParticipant,
     setSelectedParticipant,
   ] = useState("");
+
+  const [
+    sentInvitationId,
+    setSentInvitationId,
+  ] = useState<string | null>(null);
 
   const [
     incomingInvitation,
@@ -65,8 +103,19 @@ export function useLobbyState() {
       !event ||
       !currentParticipant
     ) {
+      navigate("/join");
       return;
     }
+
+    /*
+     * Restore presence to available
+     * whenever the lobby mounts
+     * (covers returning from a meeting).
+     */
+    void updatePresenceStatus(
+      event.id,
+      "available",
+    );
 
     async function fetchParticipants() {
       try {
@@ -223,34 +272,13 @@ export function useLobbyState() {
                 throw error;
               }
 
-              /*
-               * If this is a new conversation
-               * after returning to the lobby,
-               * advance to the next partner rotation.
-               *
-               * The first meeting has no existing
-               * session, so it starts at rotation 1.
-               */
-              const previousSession =
-                getSession();
-
-              const nextRotation =
-                previousSession
-                  ? Math.min(
-                      previousSession.partnerRotation +
-                        1,
-                      4,
-                    )
-                  : 1;
-
-              createSession(
+              await startConversation(
+                event!.id,
                 {
                   id: partner.id,
-                  name:
-                    partner.display_name,
+                  name: partner.display_name,
                   status: "inConversation",
                 },
-                nextRotation,
               );
 
               navigate("/meeting");
@@ -275,33 +303,46 @@ export function useLobbyState() {
   async function sendInvitation(
     participant: Participant,
   ) {
-    const event =
-      getJoinedEvent();
+    const event = getJoinedEvent();
+    const currentParticipant = getJoinedParticipant();
 
-    if (!event) {
-      console.error(
-        "No active event found.",
-      );
+    if (!event || !currentParticipant) {
+      console.error("No active event or participant.");
       return;
     }
 
     try {
-      await createInvitation(
-        event.id,
-        participant.id,
-      );
+      const { data, error } = await supabase
+        .from("event_invitations")
+        .insert({
+          event_id: event.id,
+          sender_id: currentParticipant.id,
+          receiver_id: participant.id,
+          status: "pending",
+        })
+        .select("id")
+        .single();
 
-      setSelectedParticipant(
-        participant.name,
-      );
+      if (error) throw error;
 
+      setSentInvitationId(data.id);
+      setSelectedParticipant(participant.name);
       setState("sent");
     } catch (error) {
       console.error(error);
     }
   }
 
-  function cancelInvitation() {
+  async function cancelInvitation() {
+    if (sentInvitationId) {
+      try {
+        await cancelInvitationRequest(sentInvitationId);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    setSentInvitationId(null);
     setSelectedParticipant("");
     setState("available");
   }
@@ -315,36 +356,24 @@ export function useLobbyState() {
       return;
     }
 
+    const event = getJoinedEvent();
+
+    if (!event) {
+      return;
+    }
+
     try {
       await acceptInvitationRequest(
         incomingInvitation.id,
       );
 
-      /*
-       * The RPC has paired both
-       * participants.
-       */
-      const previousSession =
-        getSession();
-
-      const nextRotation =
-        previousSession
-          ? Math.min(
-              previousSession.partnerRotation +
-                1,
-              4,
-            )
-          : 1;
-
-      createSession(
+      await startConversation(
+        event.id,
         {
-          id:
-            incomingInvitation.senderId,
-          name:
-            incomingInvitation.senderName,
+          id: incomingInvitation.senderId,
+          name: incomingInvitation.senderName,
           status: "inConversation",
         },
-        nextRotation,
       );
 
       setIncomingInvitation(null);

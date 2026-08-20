@@ -284,6 +284,33 @@ export async function declineInvitation(
 }
 
 /**
+ * Updates the presence status of the
+ * current authenticated participant.
+ */
+export async function updatePresenceStatus(
+  eventId: string,
+  status: "available" | "inConversation",
+): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("No authenticated user.");
+  }
+
+  const { error } = await supabase
+    .from("event_participants")
+    .update({ presence_status: status })
+    .eq("event_id", eventId)
+    .eq("participant_id", user.id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+/**
  * Cancels an invitation that the
  * current user sent.
  */

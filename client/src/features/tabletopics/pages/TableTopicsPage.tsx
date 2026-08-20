@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Container } from "@/components/layout";
 import { Button, Heading, Text } from "@/components/ui";
@@ -22,8 +22,12 @@ export function TableTopicsPage() {
   const [participants, setParticipants] =
     useState<TableParticipant[]>([]);
 
-  const [nudgedIds, setNudgedIds] =
-    useState<string[]>([]);
+  /*
+   * Track nudged participant IDs in a ref
+   * so loadTopic always reads the current
+   * value without stale closure issues.
+   */
+  const nudgedIdsRef = useRef<string[]>([]);
 
   const [nudgedParticipant, setNudgedParticipant] =
     useState<TableParticipant | null>(null);
@@ -33,6 +37,17 @@ export function TableTopicsPage() {
 
   const [error, setError] =
     useState(false);
+
+  /*
+   * Keep a ref to participants so loadTopic
+   * can read the latest list without
+   * being re-created on every render.
+   */
+  const participantsRef = useRef<TableParticipant[]>([]);
+
+  useEffect(() => {
+    participantsRef.current = participants;
+  }, [participants]);
 
   async function loadParticipants() {
     const {
@@ -70,32 +85,35 @@ export function TableTopicsPage() {
     );
   }
 
-  function chooseNextReader(
-    availableParticipants: TableParticipant[],
-    alreadyNudged: string[],
-  ) {
-    if (availableParticipants.length === 0) {
+  function pickNextReader(
+    available: TableParticipant[],
+  ): TableParticipant | null {
+    if (available.length === 0) {
       return null;
     }
 
-    let candidates =
-      availableParticipants.filter(
-        (participant) =>
-          !alreadyNudged.includes(
-            participant.id,
-          ),
-      );
-
-    if (candidates.length === 0) {
-      candidates = availableParticipants;
-      setNudgedIds([]);
-    }
-
-    const randomIndex = Math.floor(
-      Math.random() * candidates.length,
+    let candidates = available.filter(
+      (p) => !nudgedIdsRef.current.includes(p.id),
     );
 
-    return candidates[randomIndex] ?? null;
+    if (candidates.length === 0) {
+      nudgedIdsRef.current = [];
+      candidates = available;
+    }
+
+    const picked =
+      candidates[
+        Math.floor(Math.random() * candidates.length)
+      ] ?? null;
+
+    if (picked) {
+      nudgedIdsRef.current = [
+        ...nudgedIdsRef.current,
+        picked.id,
+      ];
+    }
+
+    return picked;
   }
 
   async function loadTopic() {
@@ -108,27 +126,15 @@ export function TableTopicsPage() {
 
       setPrompt(nextPrompt);
 
-      /*
-       * Select the next reader only after
-       * the topic has successfully loaded.
-       */
-      const reader = chooseNextReader(
-        participants,
-        nudgedIds,
+      const reader = pickNextReader(
+        participantsRef.current,
       );
 
-      if (reader) {
-        setNudgedParticipant(reader);
-
-        setNudgedIds((previous) => [
-          ...previous,
-          reader.id,
-        ]);
-      }
-    } catch (error) {
+      setNudgedParticipant(reader);
+    } catch (err) {
       console.error(
         "Failed to load TableTopics:",
-        error,
+        err,
       );
 
       setError(true);
@@ -143,10 +149,10 @@ export function TableTopicsPage() {
         setLoading(true);
 
         await loadParticipants();
-      } catch (error) {
+      } catch (err) {
         console.error(
           "Failed to initialise TableTopics:",
-          error,
+          err,
         );
 
         setError(true);
@@ -156,6 +162,7 @@ export function TableTopicsPage() {
     }
 
     initialise();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /*
@@ -171,11 +178,7 @@ export function TableTopicsPage() {
       return;
     }
 
-    async function loadFirstTopic() {
-      await loadTopic();
-    }
-
-    void loadFirstTopic();
+    void loadTopic();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [participants.length]);
 
