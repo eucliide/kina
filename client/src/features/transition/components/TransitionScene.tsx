@@ -1,29 +1,11 @@
 import type { PropsWithChildren } from "react";
 
+import { SceneTransition } from "@/lib/motion";
+
 /**
- * Shared wrapper for every
- * transition scene.
- *
- * Keeps layout and animations
- * consistent.
+ * Shared wrapper for every transition scene.
+ * Delegates animation to the Ki motion system.
  */
-export function TransitionScene({
-  children,
-}: PropsWithChildren) {
-  return (
-    <section
-        className="
-            fixed
-            inset-0
-            z-50
-            flex
-            items-center
-            justify-center
-            bg-[#07111f]
-            fade-soft
-        "
-    >
-      {children}
-    </section>
-  );
+export function TransitionScene({ children }: PropsWithChildren) {
+  return <SceneTransition>{children}</SceneTransition>;
 }
