@@ -12,7 +12,7 @@ export function Navigation() {
             href="/"
             className="text-base font-medium tracking-tight text-white/80 transition-colors hover:text-white"
           >
-            Ki
+            Kina
           </a>
 
           <Link to="/join">
