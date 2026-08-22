@@ -84,6 +84,7 @@ export async function createEvent({
    * event participant.
    */
   const {
+    data: participantData,
     error: participantError,
   } = await supabase
     .from("event_participants")
@@ -98,7 +99,9 @@ export async function createEvent({
         "available",
 
       partner_rotation: 1,
-    });
+    })
+    .select("id, display_name, presence_status")
+    .single();
 
   if (participantError) {
     throw participantError;
@@ -107,5 +110,6 @@ export async function createEvent({
   return {
     event,
     code,
+    participant: participantData,
   };
 }
