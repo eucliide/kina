@@ -2,29 +2,16 @@ import { Container } from "@/components/layout";
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden">
-      <div
-        className="
-          absolute
-          left-16
-          top-16
-          h-96
-          w-96
-          rounded-full
-          bg-blue-600/10
-          blur-3xl
-        "
-      />
-
+    <section className="relative flex min-h-screen items-center">
       <Container>
-        <div className="relative max-w-2xl">
-          <h1 className="text-5xl font-semibold tracking-tight text-slate-50 md:text-6xl">
+        <div className="relative max-w-xl">
+          <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
             Every conversation
             <br />
             starts somewhere.
           </h1>
 
-          <p className="mt-8 max-w-lg text-lg leading-8 text-slate-400">
+          <p className="mt-6 max-w-md text-lg leading-8 text-white/50">
             One thoughtful question is enough.
           </p>
         </div>

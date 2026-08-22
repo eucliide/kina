@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom";
+
 import { Container } from "@/components/layout";
 import { Button } from "@/components/ui";
-import { Link } from "react-router-dom";
 
 export function Navigation() {
   return (
@@ -9,22 +10,13 @@ export function Navigation() {
         <nav className="flex h-20 items-center justify-between">
           <a
             href="/"
-            className="
-              text-lg
-              font-medium
-              tracking-tight
-              text-slate-100
-              transition-colors
-              hover:text-white
-            "
+            className="text-base font-medium tracking-tight text-white/80 transition-colors hover:text-white"
           >
-            Kina
+            Ki
           </a>
 
           <Link to="/join">
-            <Button>
-              Join Meetup
-            </Button>
+            <Button variant="ghost">Join</Button>
           </Link>
         </nav>
       </Container>
