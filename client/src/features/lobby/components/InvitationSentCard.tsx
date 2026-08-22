@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 import { Text } from "@/components/ui";
 
 interface InvitationSentCardProps {
@@ -10,43 +12,27 @@ export function InvitationSentCard({
   onCancel,
 }: InvitationSentCardProps) {
   return (
-    <div
-      className="
-        mt-10
-        w-full
-        max-w-md
-        rounded-2xl
-        border
-        border-white/10
-        bg-white/5
-        p-6
-      "
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="mt-8 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6"
     >
       <div className="flex items-center gap-3">
-        <span className="h-2 w-2 rounded-full bg-amber-400" />
+        <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400/80" />
 
         <Text className="font-medium text-white">
-          Invitation sent
+          Waiting for {participantName}
         </Text>
       </div>
-
-      <Text className="mt-3 text-sm text-white/60">
-        Waiting for {participantName} to respond.
-      </Text>
 
       <button
         type="button"
         onClick={onCancel}
-        className="
-          mt-6
-          text-sm
-          text-white/40
-          transition-colors
-          hover:text-white/70
-        "
+        className="mt-5 text-sm text-white/35 transition-colors hover:text-white/60"
       >
-        Cancel request
+        Cancel
       </button>
-    </div>
+    </motion.div>
   );
 }
