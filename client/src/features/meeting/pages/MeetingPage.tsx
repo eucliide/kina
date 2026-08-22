@@ -1,23 +1,16 @@
+import { motion } from "framer-motion";
+
 import { Container } from "@/components/layout";
+import { TOTAL_PARTNER_ROTATIONS } from "@/features/event/constants/event";
+import { ConversationPassportCard } from "@/features/passport/components";
+import { listContainer, listItem } from "@/lib/motion";
 
 import {
   ConversationCard,
+  ConversationComplete,
   MeetingHeader,
   MeetingTimer,
 } from "../components";
-
-//prevents magic numbers from spreading through the codebase.
-import {
-  TOTAL_PARTNER_ROTATIONS,
-} from "@/features/event/constants/event";
-
-import {
-  ConversationComplete,
-} from "../components";
-
-import {
-  ConversationPassportCard,
-} from "@/features/passport/components";
 
 import { useMeeting } from "../hooks/useMeeting";
 
@@ -30,7 +23,7 @@ export function MeetingPage() {
     currentStage,
     currentPrompt,
     remainingTime,
-   remainingSeconds,
+    remainingSeconds,
   } = useMeeting();
 
   if (!session) {
@@ -40,52 +33,45 @@ export function MeetingPage() {
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
-        <section
-          className="
-            mx-auto
-            flex
-            min-h-screen
-            max-w-3xl
-            flex-col
-            justify-center
-          "
+        {/* ARRIVAL — stagger each element into view on mount */}
+        <motion.section
+          className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center"
+          variants={listContainer}
+          initial="hidden"
+          animate="visible"
         >
-          <MeetingHeader
-            partnerName={session.participant.name}
-          />
+          <motion.div variants={listItem}>
+            <MeetingHeader partnerName={session.participant.name} />
+          </motion.div>
 
-          <div className="mb-8">
+          <motion.div variants={listItem} className="mb-6">
             <ConversationPassportCard
               rotation={passport.rotation}
               totalRotations={TOTAL_PARTNER_ROTATIONS}
-              currentChapter={
-                passport.currentChapter
-              }
+              currentChapter={passport.currentChapter}
             />
-          </div>
+          </motion.div>
 
-          {state === "meeting" ? (
-            <ConversationCard
-              chapter={currentStage.chapter}
-              stageTitle={currentStage.title}
-              question={
-                currentPrompt?.text ??
-                "Prompt unavailable."
-              }
-              transitioning={
-                transitionState ===
-                "transitioning"
-              }
+          <motion.div variants={listItem}>
+            {state === "meeting" ? (
+              <ConversationCard
+                chapter={currentStage.chapter}
+                stageTitle={currentStage.title}
+                question={currentPrompt?.text ?? "Prompt unavailable."}
+                transitioning={transitionState === "transitioning"}
+              />
+            ) : (
+              <ConversationComplete />
+            )}
+          </motion.div>
+
+          <motion.div variants={listItem}>
+            <MeetingTimer
+              time={remainingTime}
+              remainingSeconds={remainingSeconds}
             />
-          ) : (
-            <ConversationComplete />
-          )}
-
-          <MeetingTimer
-            time={remainingTime}
-            remainingSeconds={remainingSeconds}
-          />
-        </section>
+          </motion.div>
+        </motion.section>
       </Container>
     </main>
   );

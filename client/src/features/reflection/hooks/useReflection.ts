@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { PROMPTS } from "../data/prompts";
 import {
   clearSession,
   getSession,
@@ -18,15 +16,6 @@ export function useReflection() {
     );
   }
 
-  const [prompt] = useState(
-    () =>
-      PROMPTS[
-        Math.floor(
-          Math.random() * PROMPTS.length,
-        )
-      ],
-  );
-
   function continueToLobby() {
     clearSession();
 
@@ -36,7 +25,6 @@ export function useReflection() {
   return {
     partnerName:
       session.participant.name,
-    prompt,
     continueToLobby,
   };
 }
