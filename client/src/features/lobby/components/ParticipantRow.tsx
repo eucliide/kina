@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 import { PresenceDot, Text } from "@/components/ui";
 
 import type { PresenceStatus } from "../types";
@@ -13,48 +15,31 @@ export function ParticipantRow({
   status,
   onClick,
 }: ParticipantRowProps) {
-  const available =
-    status === "available";
+  const available = status === "available";
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
       disabled={!available}
-      className="
-        flex
-        w-full
-        items-center
-        gap-4
-        rounded-2xl
-        border
-        border-white/10
-        bg-white/5
-        px-5
-        py-4
-        text-left
-        transition-colors
-        hover:bg-white/10
-        disabled:cursor-default
-        disabled:opacity-60
-        disabled:hover:bg-white/5
-      "
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="flex w-full items-center gap-4 rounded-xl border border-white/8 bg-white/4 px-5 py-4 text-left transition-colors hover:bg-white/8 disabled:cursor-default disabled:opacity-50 disabled:hover:bg-white/4"
     >
-      <PresenceDot
-        status={status}
-      />
+      <PresenceDot status={status} />
 
-      <div>
+      <div className="min-w-0 flex-1">
         <Text className="font-medium text-white">
           {name}
         </Text>
-
-        <Text className="mt-1 text-sm text-white/50">
-          {available
-            ? "Available"
-            : "In conversation"}
-        </Text>
       </div>
-    </button>
+
+      {available && (
+        <Text className="shrink-0 text-xs text-white/30">
+          Tap to invite
+        </Text>
+      )}
+    </motion.button>
   );
 }
