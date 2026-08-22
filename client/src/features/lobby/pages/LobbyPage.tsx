@@ -1,5 +1,9 @@
 import { Container } from "@/components/layout";
-import { Heading, Text } from "@/components/ui";
+import { Heading, Label, Text } from "@/components/ui";
+import { PageEnter } from "@/lib/motion";
+
+import { getSession } from "@/features/meeting/services/meetingSession";
+import { TOTAL_PARTNER_ROTATIONS } from "@/features/event/constants/event";
 
 import { LobbyDebugPanel } from "../components/LobbyDebugPanel";
 import { LobbyContent } from "../components/LobbyContent";
@@ -20,29 +24,42 @@ export function LobbyPage() {
     declineInvitation,
   } = useLobbyState();
 
+  const session = getSession();
+  const rotation = session
+    ? Math.min(session.partnerRotation + 1, TOTAL_PARTNER_ROTATIONS)
+    : 1;
+
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
-        <section className="flex min-h-screen flex-col justify-center">
-          <Heading>
-            Choose a partner
-          </Heading>
+        <PageEnter>
+          <section className="flex min-h-screen flex-col justify-center">
+            <div>
+              <Label>
+                Conversation {rotation} of {TOTAL_PARTNER_ROTATIONS}
+              </Label>
 
-          <Text className="mt-3 max-w-md text-white/60">
-            Invite someone to begin a conversation.
-          </Text>
+              <Heading className="mt-3">
+                Find someone to talk with.
+              </Heading>
 
-          <LobbyContent
-            state={state}
-            participants={participants}
-            selectedParticipant={selectedParticipant}
-            sendInvitation={sendInvitation}
-            incomingInvitation={incomingInvitation}
-            cancelInvitation={cancelInvitation}
-            acceptInvitation={acceptInvitation}
-            declineInvitation={declineInvitation}
-          />
-        </section>
+              <Text className="mt-2 max-w-sm">
+                Tap a name to send an invitation.
+              </Text>
+            </div>
+
+            <LobbyContent
+              state={state}
+              participants={participants}
+              selectedParticipant={selectedParticipant}
+              sendInvitation={sendInvitation}
+              incomingInvitation={incomingInvitation}
+              cancelInvitation={cancelInvitation}
+              acceptInvitation={acceptInvitation}
+              declineInvitation={declineInvitation}
+            />
+          </section>
+        </PageEnter>
       </Container>
 
       <LobbyDebugPanel setState={setState} />

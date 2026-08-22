@@ -1,7 +1,10 @@
+import { motion, AnimatePresence } from "framer-motion";
+
 import { InvitationRequestCard } from "./InvitationRequestCard";
 import { InvitationSentCard } from "./InvitationSentCard";
 import { ParticipantRow } from "./ParticipantRow";
 import { WaitingCard } from "./WaitingCard";
+import { contentSwap } from "@/lib/motion";
 
 import type {
   LobbyState,
@@ -38,13 +41,29 @@ export function LobbyContent({
   acceptInvitation,
   declineInvitation,
 }: LobbyContentProps) {
-  switch (state) {
-    case "waiting":
-      return <WaitingCard />;
+  return (
+    <AnimatePresence mode="wait">
+      {state === "waiting" && (
+        <motion.div
+          key="waiting"
+          variants={contentSwap}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          <WaitingCard />
+        </motion.div>
+      )}
 
-    case "available":
-      return (
-        <div className="mt-10 max-w-xl space-y-3">
+      {state === "available" && (
+        <motion.div
+          key="available"
+          variants={contentSwap}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="mt-10 max-w-xl space-y-3"
+        >
           {participants.map(
             (participant) => (
               <ParticipantRow
@@ -68,41 +87,49 @@ export function LobbyContent({
               />
             ),
           )}
-        </div>
-      );
+        </motion.div>
+      )}
 
-    case "sent":
-      return (
-        <InvitationSentCard
-          participantName={
-            selectedParticipant
-          }
-          onCancel={
-            cancelInvitation
-          }
-        />
-      );
+      {state === "sent" && (
+        <motion.div
+          key="sent"
+          variants={contentSwap}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          <InvitationSentCard
+            participantName={
+              selectedParticipant
+            }
+            onCancel={
+              cancelInvitation
+            }
+          />
+        </motion.div>
+      )}
 
-    case "received":
-      if (!incomingInvitation) {
-        return null;
-      }
-
-      return (
-        <InvitationRequestCard
-          participantName={
-            incomingInvitation.senderName
-          }
-          onAccept={
-            acceptInvitation
-          }
-          onDecline={
-            declineInvitation
-          }
-        />
-      );
-
-    default:
-      return null;
-  }
+      {state === "received" && incomingInvitation && (
+        <motion.div
+          key="received"
+          variants={contentSwap}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          <InvitationRequestCard
+            participantName={
+              incomingInvitation.senderName
+            }
+            onAccept={
+              acceptInvitation
+            }
+            onDecline={
+              declineInvitation
+            }
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
