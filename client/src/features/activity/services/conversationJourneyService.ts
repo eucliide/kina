@@ -81,7 +81,11 @@ export async function getConversationPrompt(
 
   return {
     id: prompt.id,
-    stageId: prompt.stage_id as ConversationPrompt["stageId"],
+    stageId: prompt.stage_id as
+      | "gettingComfortable"
+      | "sharingStories"
+      | "discoveringValues"
+      | "lookingForward",
     text: prompt.prompt_text,
   };
 }

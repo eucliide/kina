@@ -1,7 +1,7 @@
-type Presence = "available" | "inConversation";
+import type { PresenceStatus } from "@/features/lobby/types";
 
 interface PresenceDotProps {
-  status: Presence;
+  status: PresenceStatus;
 }
 
 export function PresenceDot({ status }: PresenceDotProps) {
