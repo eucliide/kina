@@ -6,7 +6,7 @@ export function Heading({ children, className }: TypographyProps) {
   return (
     <h1
       className={[
-        "text-4xl font-semibold tracking-tight text-slate-100 sm:text-5xl",
+        "text-3xl font-semibold tracking-tight text-white sm:text-4xl",
         className,
       ]
         .filter(Boolean)
@@ -21,7 +21,26 @@ export function Text({ children, className }: TypographyProps) {
   return (
     <p
       className={[
-        "mt-4 text-base leading-7 text-slate-400",
+        "text-base leading-7 text-white/60",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {children}
+    </p>
+  );
+}
+
+/**
+ * Small uppercase label — use sparingly.
+ * Replaces the repeated uppercase tracking pattern.
+ */
+export function Label({ children, className }: TypographyProps) {
+  return (
+    <p
+      className={[
+        "text-xs font-medium uppercase tracking-widest text-white/35",
         className,
       ]
         .filter(Boolean)
