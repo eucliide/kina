@@ -11,16 +11,6 @@ interface DatabaseMission {
   is_active: boolean;
 }
 
-interface DatabaseAssignment {
-  id: string;
-  event_id: string;
-  participant_id: string;
-  mission_id: string;
-  completed: boolean;
-  revealed: boolean;
-  created_at: string;
-}
-
 const MAX_ASSIGNMENT_ATTEMPTS = 5;
 
 /**
@@ -137,13 +127,14 @@ async function getActiveMissions(): Promise<
 }
 
 /**
- * Gets or creates the Secret Mission for a participant.
+ * Gets or creates the Secret Mission assigned to a
+ * participant for an event.
  *
- * Rules:
- * - One participant gets one mission per event.
- * - A mission should only be assigned once per event.
- * - Selection is random among unused missions.
- * - Concurrent assignment conflicts are retried.
+ * Guarantees:
+ * - One participant receives one mission per event.
+ * - A mission is not intentionally reused within an event.
+ * - Selection is random among currently unused missions.
+ * - Unique-constraint conflicts are retried safely.
  */
 export async function getOrCreateSecretMission(
   eventId: string,
@@ -162,7 +153,8 @@ export async function getOrCreateSecretMission(
   }
 
   /*
-   * First return an existing assignment.
+   * First check whether this participant already
+   * has a mission for this event.
    */
   const existing =
     await getExistingAssignment(
@@ -175,7 +167,11 @@ export async function getOrCreateSecretMission(
   }
 
   /*
-   * Load the active mission pool.
+   * Load the active mission pool once.
+   *
+   * The pool itself does not change during normal
+   * assignment, while the used-assignment list is
+   * refreshed on every retry.
    */
   const missions =
     await getActiveMissions();
@@ -187,7 +183,7 @@ export async function getOrCreateSecretMission(
   }
 
   /*
-   * A small bounded retry protects against two
+   * Retry a small number of times to handle two
    * participants attempting to claim the same
    * mission at nearly the same time.
    */
@@ -197,10 +193,8 @@ export async function getOrCreateSecretMission(
     attempt += 1
   ) {
     /*
-     * Check again before inserting.
-     *
-     * Another request may have created the
-     * participant's assignment since the first check.
+     * Re-check the participant assignment before
+     * every insert attempt.
      */
     const currentAssignment =
       await getExistingAssignment(
@@ -213,7 +207,8 @@ export async function getOrCreateSecretMission(
     }
 
     /*
-     * Refresh the used-mission list on every attempt.
+     * Refresh which missions have already been
+     * assigned in this event.
      */
     const usedMissionIds =
       await getUsedMissionIds(eventId);
@@ -233,7 +228,8 @@ export async function getOrCreateSecretMission(
     }
 
     /*
-     * Randomly select one unused mission.
+     * Randomly select one of the currently unused
+     * missions.
      */
     const selectedMission =
       unusedMissions[
@@ -244,14 +240,12 @@ export async function getOrCreateSecretMission(
       ];
 
     /*
-     * Insert only the fields that are required.
+     * Only provide columns that are required.
      *
-     * completed and revealed use their database
-     * defaults:
-     *   completed = false
-     *   revealed = false
-     *
-     * created_at also uses its database default.
+     * The database supplies:
+     * completed = false
+     * revealed = false
+     * created_at = now()
      */
     const {
       data: assignment,
@@ -263,23 +257,13 @@ export async function getOrCreateSecretMission(
         participant_id: participantId,
         mission_id: selectedMission.id,
       })
-      .select(
-        `
-          id,
-          event_id,
-          participant_id,
-          mission_id,
-          completed,
-          revealed,
-          created_at
-        `,
-      )
+      .select("id")
       .single();
 
+    /*
+     * Successful assignment.
+     */
     if (!insertError && assignment) {
-      const createdAssignment =
-        assignment as DatabaseAssignment;
-
       return {
         id: selectedMission.id,
         text: selectedMission.mission_text,
@@ -287,27 +271,41 @@ export async function getOrCreateSecretMission(
     }
 
     /*
-     * PostgreSQL unique violation.
+     * PostgreSQL unique-constraint violation.
      *
-     * Another participant may have claimed this
-     * mission between our read and our insert.
+     * Another participant may have claimed the
+     * selected mission between our availability
+     * check and this insert.
      *
-     * Refresh and try another unused mission.
+     * Retry after refreshing the used-mission list.
      */
     if (insertError?.code === "23505") {
       continue;
     }
 
+    /*
+     * Any other database error is a real failure
+     * and should not be hidden by a retry.
+     */
     if (insertError) {
       throw new Error(
         `Failed to create Secret Mission assignment: ${insertError.message}`,
       );
     }
+
+    /*
+     * Defensive fallback in case Supabase returns
+     * neither an error nor an inserted row.
+     */
+    throw new Error(
+      "Secret Mission assignment was not created.",
+    );
   }
 
   /*
-   * Final check in case the participant received
-   * an assignment during the retry window.
+   * One final lookup protects against the case where
+   * the participant received an assignment during the
+   * retry sequence.
    */
   const finalAssignment =
     await getExistingAssignment(
