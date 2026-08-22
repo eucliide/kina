@@ -1,4 +1,4 @@
-import { Text } from "@/components/ui";
+import { Label } from "@/components/ui";
 
 interface MeetingTimerProps {
   time: string;
@@ -9,52 +9,25 @@ export function MeetingTimer({
   time,
   remainingSeconds,
 }: MeetingTimerProps) {
-  const warning =
-    remainingSeconds <= 60;
-
-  const critical =
-    remainingSeconds <= 10;
+  const warning = remainingSeconds <= 60;
+  const critical = remainingSeconds <= 10;
 
   return (
-    <div className="mt-10 text-center">
-      <Text
-        className="
-          text-sm
-          uppercase
-          tracking-[0.2em]
-          text-white/40
-        "
-      >
-        Time Remaining
-      </Text>
+    <div className="mt-8 text-center">
+      <Label>Time remaining</Label>
 
-      <div
-        className={`
-          mt-2
-          transition-transform
-          duration-300
-          ${
-            critical
-              ? "scale-[1.02]"
-              : ""
-          }
-        `}
+      <p
+        className={[
+          "mt-2 text-3xl font-light tabular-nums transition-colors duration-300",
+          critical
+            ? "text-white"
+            : warning
+              ? "text-white/80"
+              : "text-white/40",
+        ].join(" ")}
       >
-        <Text
-          className={`
-            text-5xl
-            transition-all
-            duration-300
-            ${
-              warning
-                ? "font-normal text-white/95"
-                : "font-light text-white"
-            }
-          `}
-        >
-          {time}
-        </Text>
-      </div>
+        {time}
+      </p>
     </div>
   );
 }

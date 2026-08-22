@@ -1,4 +1,6 @@
-import { Heading, Text } from "@/components/ui";
+import { motion } from "framer-motion";
+
+import { Heading, Label } from "@/components/ui";
 
 interface MeetingHeaderProps {
   partnerName: string;
@@ -8,20 +10,17 @@ export function MeetingHeader({
   partnerName,
 }: MeetingHeaderProps) {
   return (
-    <header className="mb-12 text-center">
-      <Text
-        className="
-          uppercase
-          tracking-[0.25em]
-          text-white/40
-        "
-      >
-        Conversation Partner
-      </Text>
+    <motion.header
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="mb-10 text-center"
+    >
+      <Label>Conversation with</Label>
 
-      <Heading className="mt-4">
+      <Heading className="mt-3">
         {partnerName}
       </Heading>
-    </header>
+    </motion.header>
   );
 }
