@@ -10,19 +10,18 @@ export function MeetingCodeInput({
   return (
     <input
       value={value}
-      onChange={(event) =>
-        onChange(event.target.value)
-      }
-      placeholder="Enter meeting code"
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="Meeting code"
       className="
-        h-12 w-full rounded-xl
+        h-11 w-full rounded-xl
         border border-white/10
         bg-white/5
         px-4
         text-white
         outline-none
-        placeholder:text-white/40
-        focus:border-blue-500
+        transition-colors
+        placeholder:text-white/30
+        focus:border-white/30
       "
     />
   );

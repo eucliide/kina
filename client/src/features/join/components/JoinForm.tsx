@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Button } from "@/components/ui";
+import { Button, Text } from "@/components/ui";
 import { loadEventByCode } from "@/features/event/services/eventLookupService";
 import { setJoinedEvent } from "../services/joinSession";
 
@@ -27,42 +27,22 @@ export function JoinForm() {
     setLoading(true);
 
     try {
-      const event =
-        await loadEventByCode(
-          normalizedCode,
-        );
-
+      const event = await loadEventByCode(normalizedCode);
       setJoinedEvent(event);
-
       navigate("/join/name");
     } catch {
-      setError(
-        "We couldn't find that meetup.",
-      );
+      setError("We couldn't find that meetup.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="space-y-4">
-      <QRCodeButton />
-
-      <div className="flex items-center gap-4 text-sm text-white/40">
-        <span className="h-px flex-1 bg-white/10" />
-        OR
-        <span className="h-px flex-1 bg-white/10" />
-      </div>
-
-      <MeetingCodeInput
-        value={code}
-        onChange={setCode}
-      />
+    <div className="space-y-3">
+      <MeetingCodeInput value={code} onChange={setCode} />
 
       {error && (
-        <p className="text-sm text-red-300">
-          {error}
-        </p>
+        <Text className="text-sm text-red-300/80">{error}</Text>
       )}
 
       <Button
@@ -70,10 +50,16 @@ export function JoinForm() {
         onClick={handleContinue}
         disabled={loading}
       >
-        {loading
-          ? "Finding meetup..."
-          : "Continue"}
+        {loading ? "Finding meetup…" : "Continue"}
       </Button>
+
+      <div className="flex items-center gap-3 py-1 text-xs text-white/25">
+        <span className="h-px flex-1 bg-white/10" />
+        or
+        <span className="h-px flex-1 bg-white/10" />
+      </div>
+
+      <QRCodeButton />
     </div>
   );
 }

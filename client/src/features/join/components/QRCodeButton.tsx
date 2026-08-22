@@ -2,8 +2,8 @@ import { Button } from "@/components/ui";
 
 export function QRCodeButton() {
   return (
-    <Button className="w-full">
-      Scan QR Code
+    <Button variant="ghost" className="w-full">
+      Scan QR code
     </Button>
   );
 }
