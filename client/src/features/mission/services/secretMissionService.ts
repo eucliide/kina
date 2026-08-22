@@ -2,96 +2,74 @@ import { supabase } from "@/lib/supabase";
 
 import type { SecretMission } from "../types/secretMission";
 
-interface MissionAssignment {
+interface DatabaseMission {
   id: string;
-  mission_id: string;
+  activity_id: string;
+  stage_id: string | null;
+  mission_text: string;
+  mission_order: number;
+  is_active: boolean;
 }
 
-interface Mission {
+interface DatabaseAssignment {
   id: string;
-  mission_text: string;
+  event_id: string;
+  participant_id: string;
+  mission_id: string;
+  completed: boolean;
+  revealed: boolean;
+  created_at: string;
 }
+
+const MAX_ASSIGNMENT_ATTEMPTS = 5;
 
 /**
- * Gets an existing mission assignment.
+ * Gets the mission already assigned to this participant
+ * for this event.
  */
 async function getExistingAssignment(
   eventId: string,
   participantId: string,
 ): Promise<SecretMission | null> {
-  console.log(
-    "DEBUG getExistingAssignment",
-    {
-      eventId,
-      participantId,
-    },
-  );
-
-  const {
-    data,
-    error,
-  } = await supabase
+  const { data, error } = await supabase
     .from("mission_assignments")
     .select(
-      "id, mission_id",
+      `
+        id,
+        event_id,
+        participant_id,
+        mission_id,
+        completed,
+        revealed,
+        created_at,
+        missions (
+          id,
+          mission_text
+        )
+      `,
     )
-    .eq(
-      "event_id",
-      eventId,
-    )
-    .eq(
-      "participant_id",
-      participantId,
-    )
+    .eq("event_id", eventId)
+    .eq("participant_id", participantId)
     .maybeSingle();
 
-  console.log(
-    "DEBUG ASSIGNMENT RESPONSE",
-    data,
-  );
-
-  console.log(
-    "DEBUG ASSIGNMENT ERROR",
-    error,
-  );
-
   if (error) {
-    throw error;
+    throw new Error(
+      `Failed to check existing Secret Mission assignment: ${error.message}`,
+    );
   }
 
   if (!data) {
     return null;
   }
 
-  const assignment =
-    data as MissionAssignment;
+  const mission = Array.isArray(data.missions)
+    ? data.missions[0]
+    : data.missions;
 
-  const {
-    data: mission,
-    error: missionError,
-  } = await supabase
-    .from("missions")
-    .select(
-      "id, mission_text",
-    )
-    .eq(
-      "id",
-      assignment.mission_id,
-    )
-    .single();
-
-  console.log(
-    "DEBUG MISSION RESPONSE",
-    mission,
-  );
-
-  console.log(
-    "DEBUG MISSION ERROR",
-    missionError,
-  );
-
-  if (missionError) {
-    throw missionError;
+  if (!mission) {
+    throw new Error(
+      "Secret Mission assignment exists, but its mission could not be loaded.",
+    );
   }
 
   return {
@@ -101,23 +79,90 @@ async function getExistingAssignment(
 }
 
 /**
- * Creates or retrieves a secret mission.
+ * Gets mission IDs already assigned within an event.
+ */
+async function getUsedMissionIds(
+  eventId: string,
+): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from("mission_assignments")
+    .select("mission_id")
+    .eq("event_id", eventId);
+
+  if (error) {
+    throw new Error(
+      `Failed to load used Secret Missions: ${error.message}`,
+    );
+  }
+
+  return new Set(
+    (data ?? []).map(
+      (assignment) => assignment.mission_id,
+    ),
+  );
+}
+
+/**
+ * Loads the active Secret Mission pool.
+ */
+async function getActiveMissions(): Promise<
+  DatabaseMission[]
+> {
+  const { data, error } = await supabase
+    .from("missions")
+    .select(
+      `
+        id,
+        activity_id,
+        stage_id,
+        mission_text,
+        mission_order,
+        is_active
+      `,
+    )
+    .eq("activity_id", "secretMission")
+    .eq("stage_id", "opening")
+    .eq("is_active", true)
+    .order("mission_order", {
+      ascending: true,
+    });
+
+  if (error) {
+    throw new Error(
+      `Failed to load Secret Missions: ${error.message}`,
+    );
+  }
+
+  return (data ?? []) as DatabaseMission[];
+}
+
+/**
+ * Gets or creates the Secret Mission for a participant.
+ *
+ * Rules:
+ * - One participant gets one mission per event.
+ * - A mission should only be assigned once per event.
+ * - Selection is random among unused missions.
+ * - Concurrent assignment conflicts are retried.
  */
 export async function getOrCreateSecretMission(
   eventId: string,
   participantId: string,
 ): Promise<SecretMission> {
-  console.log(
-    "DEBUG SECRET MISSION INPUT",
-    {
-      eventId,
-      participantId,
-    },
-  );
+  if (!eventId) {
+    throw new Error(
+      "Cannot assign a Secret Mission without an event ID.",
+    );
+  }
+
+  if (!participantId) {
+    throw new Error(
+      "Cannot assign a Secret Mission without a participant ID.",
+    );
+  }
 
   /*
-   * First check whether this participant
-   * already has an assignment.
+   * First return an existing assignment.
    */
   const existing =
     await getExistingAssignment(
@@ -126,236 +171,155 @@ export async function getOrCreateSecretMission(
     );
 
   if (existing) {
-    console.log(
-      "DEBUG EXISTING MISSION FOUND",
-      existing,
-    );
-
     return existing;
   }
 
   /*
-   * Load missions already used in this event.
+   * Load the active mission pool.
    */
-  const {
-    data: usedAssignments,
-    error: usedError,
-  } = await supabase
-    .from("mission_assignments")
-    .select(
-      "mission_id",
-    )
-    .eq(
-      "event_id",
-      eventId,
-    );
+  const missions =
+    await getActiveMissions();
 
-  if (usedError) {
-    throw usedError;
-  }
-
-  const usedMissionIds =
-    usedAssignments?.map(
-      (item: { mission_id: string }) =>
-        item.mission_id,
-    ) ?? [];
-
-  console.log(
-    "DEBUG USED MISSION IDS",
-    usedMissionIds,
-  );
-
-  /*
-   * Load all active Secret Missions.
-   *
-   * IMPORTANT:
-   * The canonical activity ID in the
-   * database is "secretMission".
-   */
-  const {
-    data: missions,
-    error: missionsError,
-  } = await supabase
-    .from("missions")
-    .select(
-      "id, mission_text",
-    )
-    .eq(
-      "activity_id",
-      "secretMission",
-    )
-    .eq(
-      "stage_id",
-      "opening",
-    )
-    .eq(
-      "is_active",
-      true,
-    )
-    .order(
-      "mission_order",
-      {
-        ascending: true,
-      },
-    );
-
-  console.log(
-    "DEBUG AVAILABLE MISSIONS",
-    missions,
-  );
-
-  console.log(
-    "DEBUG MISSIONS ERROR",
-    missionsError,
-  );
-
-  if (missionsError) {
-    throw missionsError;
-  }
-
-  const availableMissions =
-    (missions as Mission[]).filter(
-      (mission) =>
-        !usedMissionIds.includes(
-          mission.id,
-        ),
-    );
-
-  console.log(
-    "DEBUG AVAILABLE UNUSED MISSIONS",
-    availableMissions,
-  );
-
-  const mission =
-    availableMissions[0];
-
-  if (!mission) {
+  if (missions.length === 0) {
     throw new Error(
-      "No available secret missions for this event.",
+      "No active Secret Missions are available.",
     );
   }
 
   /*
-   * IMPORTANT DIAGNOSTIC:
-   *
-   * Verify that participantId refers
-   * to the event_participants.id row,
-   * and verify that the row belongs to
-   * the currently authenticated user.
+   * A small bounded retry protects against two
+   * participants attempting to claim the same
+   * mission at nearly the same time.
    */
-  const {
-    data: participantRow,
-    error: participantLookupError,
-  } = await supabase
-    .from("event_participants")
-    .select(
-      "id, event_id, participant_id, display_name",
-    )
-    .eq(
-      "id",
-      participantId,
-    )
-    .single();
+  for (
+    let attempt = 0;
+    attempt < MAX_ASSIGNMENT_ATTEMPTS;
+    attempt += 1
+  ) {
+    /*
+     * Check again before inserting.
+     *
+     * Another request may have created the
+     * participant's assignment since the first check.
+     */
+    const currentAssignment =
+      await getExistingAssignment(
+        eventId,
+        participantId,
+      );
 
-  console.log(
-    "DEBUG PARTICIPANT ROW BEFORE ASSIGNMENT",
-    participantRow,
-  );
+    if (currentAssignment) {
+      return currentAssignment;
+    }
 
-  console.log(
-    "DEBUG PARTICIPANT LOOKUP ERROR",
-    participantLookupError,
-  );
+    /*
+     * Refresh the used-mission list on every attempt.
+     */
+    const usedMissionIds =
+      await getUsedMissionIds(eventId);
 
-  if (participantLookupError) {
-    throw participantLookupError;
+    const unusedMissions =
+      missions.filter(
+        (mission) =>
+          !usedMissionIds.has(
+            mission.id,
+          ),
+      );
+
+    if (unusedMissions.length === 0) {
+      throw new Error(
+        "All Secret Missions have already been assigned for this event.",
+      );
+    }
+
+    /*
+     * Randomly select one unused mission.
+     */
+    const selectedMission =
+      unusedMissions[
+        Math.floor(
+          Math.random() *
+            unusedMissions.length,
+        )
+      ];
+
+    /*
+     * Insert only the fields that are required.
+     *
+     * completed and revealed use their database
+     * defaults:
+     *   completed = false
+     *   revealed = false
+     *
+     * created_at also uses its database default.
+     */
+    const {
+      data: assignment,
+      error: insertError,
+    } = await supabase
+      .from("mission_assignments")
+      .insert({
+        event_id: eventId,
+        participant_id: participantId,
+        mission_id: selectedMission.id,
+      })
+      .select(
+        `
+          id,
+          event_id,
+          participant_id,
+          mission_id,
+          completed,
+          revealed,
+          created_at
+        `,
+      )
+      .single();
+
+    if (!insertError && assignment) {
+      const createdAssignment =
+        assignment as DatabaseAssignment;
+
+      return {
+        id: selectedMission.id,
+        text: selectedMission.mission_text,
+      };
+    }
+
+    /*
+     * PostgreSQL unique violation.
+     *
+     * Another participant may have claimed this
+     * mission between our read and our insert.
+     *
+     * Refresh and try another unused mission.
+     */
+    if (insertError?.code === "23505") {
+      continue;
+    }
+
+    if (insertError) {
+      throw new Error(
+        `Failed to create Secret Mission assignment: ${insertError.message}`,
+      );
+    }
   }
 
   /*
-   * Verify the authenticated user again
-   * immediately before the RLS-protected
-   * insert.
+   * Final check in case the participant received
+   * an assignment during the retry window.
    */
-  const {
-    data: {
-      user,
-    },
-  } = await supabase.auth.getUser();
-
-  console.log(
-    "DEBUG AUTH UID BEFORE ASSIGNMENT",
-    user?.id,
-  );
-
-  console.log(
-    "DEBUG RLS EXPECTATION",
-    {
-      participantRowId:
-        participantRow?.id,
-
-      participantRowEventId:
-        participantRow?.event_id,
-
-      participantRowAuthId:
-        participantRow?.participant_id,
-
-      currentAuthId:
-        user?.id,
-
+  const finalAssignment =
+    await getExistingAssignment(
       eventId,
-
       participantId,
-    },
-  );
+    );
 
-  /*
-   * Create the assignment.
-   */
-  const {
-    data: assignment,
-    error: insertError,
-  } = await supabase
-    .from(
-      "mission_assignments",
-    )
-    .insert({
-      event_id: eventId,
-      participant_id: participantId,
-      mission_id: mission.id,
-    })
-    .select(
-      "id, mission_id",
-    )
-    .single();
-
-  console.log(
-    "DEBUG ASSIGNMENT INSERT RESPONSE",
-    assignment,
-  );
-
-  console.log(
-    "DEBUG ASSIGNMENT INSERT ERROR",
-    insertError,
-  );
-
-  if (insertError) {
-    throw insertError;
+  if (finalAssignment) {
+    return finalAssignment;
   }
 
-  console.log(
-    "DEBUG SECRET MISSION CREATED",
-    {
-      assignmentId:
-        assignment?.id,
-      missionId:
-        mission.id,
-      participantId,
-      eventId,
-    },
+  throw new Error(
+    "Unable to assign a unique Secret Mission after several attempts.",
   );
-
-  return {
-    id: mission.id,
-    text: mission.mission_text,
-  };
 }
