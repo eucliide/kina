@@ -17,6 +17,10 @@ import {
   updateSession,
 } from "../services/meetingSession";
 
+import {
+  TOTAL_PARTNER_ROTATIONS,
+} from "@/features/event/constants/event";
+
 import type { MeetingSession } from "../types";
 
 export function useMeeting() {
@@ -174,7 +178,7 @@ export function useMeeting() {
               );
 
               if (
-                session.partnerRotation < 4
+                session.partnerRotation < TOTAL_PARTNER_ROTATIONS
               ) {
                 window.setTimeout(() => {
                   navigate("/lobby");
@@ -184,8 +188,8 @@ export function useMeeting() {
               }
 
               /*
-               * Partner 4 completes the
-               * Conversation Journey.
+               * Final partner rotation completes
+               * the Conversation Journey.
                *
                * Move directly into the
                * shared WNRS reflection.
