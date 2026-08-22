@@ -1,26 +1,23 @@
+import { useNavigate } from "react-router-dom";
+
 import { Container } from "@/components/layout";
-import { Heading, Text } from "@/components/ui";
+import { Button, Label, Text } from "@/components/ui";
+import { PageEnter } from "@/lib/motion";
 
 import { useSecretMission } from "../hooks/useSecretMission";
 
-interface SecretMissionPageProps {
-  onContinue?: () => void;
-}
+export function SecretMissionPage() {
+  const navigate = useNavigate();
 
-export function SecretMissionPage({ onContinue }: SecretMissionPageProps) {
-  const {
-    mission,
-    loading,
-    error,
-  } = useSecretMission();
+  const { mission, loading, error } = useSecretMission();
 
   if (loading) {
     return (
       <main className="min-h-screen bg-[#07111f] text-white">
         <Container>
           <section className="flex min-h-screen items-center justify-center">
-            <Text className="text-white/60">
-              Preparing your secret mission...
+            <Text className="text-white/40">
+              One moment…
             </Text>
           </section>
         </Container>
@@ -33,13 +30,8 @@ export function SecretMissionPage({ onContinue }: SecretMissionPageProps) {
       <main className="min-h-screen bg-[#07111f] text-white">
         <Container>
           <section className="flex min-h-screen flex-col justify-center">
-            <Heading>
-              Secret Mission
-            </Heading>
-
-            <Text className="mt-3 max-w-md text-white/60">
-              {error ??
-                "Unable to prepare your secret mission."}
+            <Text className="text-white/50">
+              {error ?? "Unable to prepare your mission."}
             </Text>
           </section>
         </Container>
@@ -50,56 +42,31 @@ export function SecretMissionPage({ onContinue }: SecretMissionPageProps) {
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
-        <section className="flex min-h-screen flex-col justify-center">
-          <Heading>
-            Your Secret Mission
-          </Heading>
+        <PageEnter>
+          <section className="flex min-h-screen flex-col justify-center">
+            <div className="max-w-md">
+              <Label>Just for you</Label>
 
-          <Text className="mt-4 max-w-md text-white/70">
-            This is yours alone.
-            Keep it quiet and let the evening
-            unfold naturally.
-          </Text>
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+                <Text className="text-lg leading-relaxed text-white">
+                  {mission.text}
+                </Text>
 
-          <div
-            className="
-              mt-8
-              max-w-xl
-              rounded-2xl
-              border
-              border-white/10
-              bg-white/5
-              p-6
-              text-lg
-              leading-relaxed
-            "
-          >
-            {mission.text}
-          </div>
+                <Text className="mt-4 text-sm text-white/40">
+                  Keep this to yourself.
+                </Text>
+              </div>
 
-          {onContinue && (
-            <button
-              type="button"
-              onClick={onContinue}
-              className="
-                mt-8
-                rounded-full
-                border
-                border-white/15
-                bg-white/5
-                px-6
-                py-3
-                text-sm
-                font-medium
-                text-white
-                transition
-                hover:bg-white/10
-              "
-            >
-              Enter the lobby
-            </button>
-          )}
-        </section>
+              <Button
+                variant="ghost"
+                className="mt-6"
+                onClick={() => navigate("/lobby")}
+              >
+                Enter the lobby
+              </Button>
+            </div>
+          </section>
+        </PageEnter>
       </Container>
     </main>
   );
