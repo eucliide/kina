@@ -16,7 +16,7 @@ function App() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#07111f] text-white">
         <p className="text-white/60">
-          Unable to start Ki.
+          Unable to start Kina.
         </p>
       </main>
     );
@@ -26,7 +26,7 @@ function App() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#07111f] text-white">
         <p className="text-white/50">
-          Starting Ki...
+          Starting Kina...
         </p>
       </main>
     );

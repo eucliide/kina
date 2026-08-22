@@ -33,70 +33,37 @@ textarea {
   font: inherit;
 }
 
+/* -------------------------------- */
+/* Presence pulse                   */
+/* -------------------------------- */
+
 @keyframes presence {
-
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.65;
-    transform: scale(0.9);
-  }
-
+  0%,
   100% {
     opacity: 1;
     transform: scale(1);
   }
 
+  50% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
 }
 
 .animate-presence {
   animation: presence 2.4s ease-in-out infinite;
 }
 
-.fade-up {
-  opacity: 0;
-  transform: translateY(12px);
-  animation: fadeUp 300ms ease forwards;
-}
-
-@keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* -------------------------------- */
-/* Transition Animations */
+/* Reduced motion                   */
 /* -------------------------------- */
 
-@keyframes fadeInSoft {
-  from {
-    opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOutSoft {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-.fade-soft {
-  animation: fadeInSoft 500ms ease forwards;
-}
-
-.fade-out-soft {
-  animation: fadeOutSoft 500ms ease forwards;
 }
