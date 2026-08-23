@@ -30,9 +30,9 @@ export const ROTATION_THREE: ConversationPrompt[] = [
   },
 
   {
-    id: "r3-lf-1",
-    stageId: "lookingForward",
+    id: "r3-ref-1",
+    stageId: "reflection",
     text:
-      "If everything worked out, what would you love your life to look like in five years?",
+      "What's something meaningful you'll take away from tonight?",
   },
 ];

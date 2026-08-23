@@ -30,9 +30,9 @@ export const ROTATION_TWO: ConversationPrompt[] = [
   },
 
   {
-    id: "r2-lf-1",
-    stageId: "lookingForward",
+    id: "r2-ref-1",
+    stageId: "reflection",
     text:
-      "What's a skill you'd love to become known for someday?",
+      "What stood out to you most in this conversation?",
   },
 ];

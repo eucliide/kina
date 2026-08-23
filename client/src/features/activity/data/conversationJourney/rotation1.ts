@@ -30,9 +30,9 @@ export const ROTATION_ONE: ConversationPrompt[] = [
   },
 
   {
-    id: "r1-lf-1",
-    stageId: "lookingForward",
+    id: "r1-ref-1",
+    stageId: "reflection",
     text:
-      "What's one thing you're genuinely excited about this year?",
+      "What's something you learned about your partner or yourself in this conversation?",
   },
 ];

@@ -14,7 +14,7 @@ export interface ConversationPrompt {
     | "gettingComfortable"
     | "sharingStories"
     | "discoveringValues"
-    | "lookingForward";
+    | "reflection";
 
   /**
    * Prompt shown to both partners.

@@ -9,5 +9,5 @@ export const STAGE_CATEGORIES = {
 
   discoveringValues: "values",
 
-  lookingForward: "dreams",
+  reflection: "reflection",
 } as const;

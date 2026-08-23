@@ -3,33 +3,37 @@
  *
  * Each stage represents one
  * chapter of the conversation.
+ * 
+ * 3 stages × 6 minutes = 18 minutes conversation
+ * 1 reflection stage × 2 minutes = 2 minutes reflection
+ * Total per rotation: 20 minutes
  */
 export const CONVERSATION_STAGES = [
   {
     id: "gettingComfortable",
     chapter: 1,
     title: "Getting Comfortable",
-    duration: 5 * 60,
+    duration: 6 * 60, // 6:00
   },
 
   {
     id: "sharingStories",
     chapter: 2,
     title: "Sharing Stories",
-    duration: 6 * 60,
+    duration: 6 * 60, // 6:00
   },
 
   {
     id: "discoveringValues",
     chapter: 3,
     title: "Discovering Values",
-    duration: 6 * 60,
+    duration: 6 * 60, // 6:00
   },
 
   {
-    id: "lookingForward",
+    id: "reflection",
     chapter: 4,
-    title: "Looking Forward",
-    duration: 5 * 60,
+    title: "Reflection",
+    duration: 2 * 60, // 2:00
   },
 ] as const;
