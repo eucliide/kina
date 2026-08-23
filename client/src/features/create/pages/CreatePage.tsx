@@ -36,7 +36,7 @@ export function CreatePage() {
         status: participant.presence_status,
       });
 
-      navigate("/lobby");
+      navigate("/create/ready");
     } catch (error) {
       console.error(error);
     }
