@@ -161,6 +161,8 @@ export function useMeeting() {
     if (!roundEndsAt) return;
 
     function updateRemainingTime() {
+      if (!roundEndsAt) return;
+      
       const now = Date.now();
       const endsAtTime = roundEndsAt.getTime();
       const remaining = Math.max(
