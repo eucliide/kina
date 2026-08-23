@@ -1,4 +1,4 @@
-import { CONVERSATION_STAGES } from "../data/conversationStages";
+import { CONVERSATION_STAGES } from "@/features/activity/data/conversationStages";
 
 /**
  * Returns the index of a stage.
