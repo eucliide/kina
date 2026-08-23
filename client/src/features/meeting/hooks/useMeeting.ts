@@ -21,6 +21,14 @@ import {
   TOTAL_PARTNER_ROTATIONS,
 } from "@/features/event/constants/event";
 
+import { getJoinedEvent } from "@/features/join/services/joinSession";
+import { 
+  getEventMeetingState,
+  startRound,
+  advanceToNextRound,
+} from "@/features/event/services/meetingRoundService";
+import { supabase } from "@/lib/supabase";
+
 import type { MeetingSession } from "../types";
 
 export function useMeeting() {
@@ -52,6 +60,11 @@ export function useMeeting() {
       return existing;
     });
 
+  const [roundEndsAt, setRoundEndsAt] = useState<Date | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+
+  const event = getJoinedEvent();
+
   const {
     passport,
     completeCurrentChapter,
@@ -69,6 +82,102 @@ export function useMeeting() {
       "Unknown conversation stage.",
     );
   }
+
+  /*
+   * Initialize authoritative meeting state from database.
+   */
+  useEffect(() => {
+    if (!event) return;
+
+    let mounted = true;
+
+    async function initializeMeetingState() {
+      const meetingState = await getEventMeetingState(event!.id);
+
+      if (!mounted) return;
+
+      if (meetingState?.roundEndsAt) {
+        // Use existing authoritative timestamp
+        setRoundEndsAt(new Date(meetingState.roundEndsAt));
+      } else {
+        // Start the first round
+        const result = await startRound(event!.id, session.partnerRotation);
+        if (result && mounted) {
+          setRoundEndsAt(new Date(result.roundEndsAt));
+        }
+      }
+    }
+
+    initializeMeetingState();
+
+    return () => {
+      mounted = false;
+    };
+  }, [event, session.partnerRotation]);
+
+  /*
+   * Subscribe to meeting state changes via Realtime.
+   */
+  useEffect(() => {
+    if (!event) return;
+
+    const channel = supabase
+      .channel(`event-meeting:${event.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "events",
+          filter: `id=eq.${event.id}`,
+        },
+        (payload) => {
+          const updatedEvent = payload.new as {
+            round_ends_at?: string;
+            current_round?: number;
+          };
+
+          if (updatedEvent.round_ends_at) {
+            setRoundEndsAt(new Date(updatedEvent.round_ends_at));
+          }
+
+          if (updatedEvent.current_round && updatedEvent.current_round !== session.partnerRotation) {
+            // Round changed - reload page to sync
+            window.location.reload();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [event, session.partnerRotation]);
+
+  /*
+   * Calculate remaining time from authoritative timestamp.
+   */
+  useEffect(() => {
+    if (!roundEndsAt) return;
+
+    function updateRemainingTime() {
+      const now = Date.now();
+      const endsAtTime = roundEndsAt.getTime();
+      const remaining = Math.max(
+        0,
+        Math.ceil((endsAtTime - now) / 1000)
+      );
+      setRemainingSeconds(remaining);
+    }
+
+    // Update immediately
+    updateRemainingTime();
+
+    // Then update every second for display
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [roundEndsAt]);
 
   /*
    * Load the shared prompt whenever the
@@ -113,144 +222,80 @@ export function useMeeting() {
   ]);
 
   /*
-   * The timer belongs to the current stage.
-   */
-  const [
-    remainingSeconds,
-    setRemainingSeconds,
-  ] = useState(
-    currentStage.duration,
-  );
-
-  /*
-   * Reset the timer whenever the
-   * stage changes.
+   * Reset transition state when stage changes.
    */
   useLayoutEffect(() => {
-    setRemainingSeconds( // eslint-disable-line react-hooks/set-state-in-effect
-      currentStage.duration,
-    );
     setTransitionState("idle");
-  }, [
-    session.currentStageId,
-    currentStage.duration,
-  ]);
+  }, [session.currentStageId]);
 
   /*
-   * Stage timer.
+   * Handle round end and stage transitions.
    */
   useEffect(() => {
     if (state !== "meeting") {
       return;
     }
 
-    if (
-      transitionState ===
-      "transitioning"
-    ) {
+    if (transitionState === "transitioning") {
       return;
     }
 
-    const interval =
-      window.setInterval(() => {
-        setRemainingSeconds(
-          (seconds) => {
-            if (seconds > 1) {
-              return seconds - 1;
-            }
+    if (remainingSeconds > 1) {
+      return;
+    }
 
-            const nextStage =
-              getNextStage(
-                session.currentStageId,
-              );
+    // Time is up
+    const nextStage = getNextStage(session.currentStageId);
 
-            /*
-             * Current partner's Conversation
-             * Journey is complete.
-             */
-            if (!nextStage) {
-              setTransitionState(
-                "transitioning",
-              );
+    if (!nextStage) {
+      // Round complete
+      setTransitionState("transitioning");
+      completeCurrentChapter(currentStage.chapter);
 
-              completeCurrentChapter(
-                currentStage.chapter,
-              );
-
-              if (
-                session.partnerRotation < TOTAL_PARTNER_ROTATIONS
-              ) {
-                window.setTimeout(() => {
-                  navigate("/lobby");
-                }, 1200);
-
-                return 0;
-              }
-
-              /*
-               * Final partner rotation completes
-               * the Conversation Journey.
-               *
-               * Move directly into the
-               * shared WNRS reflection.
-               */
-              window.setTimeout(() => {
-                navigate("/wnrs");
+      if (session.partnerRotation < TOTAL_PARTNER_ROTATIONS) {
+        // Advance to next round
+        if (event) {
+          advanceToNextRound(event.id, session.partnerRotation).then((success) => {
+            if (success) {
+              setTimeout(() => {
+                navigate("/lobby");
               }, 1200);
-
-              return 0;
             }
+          });
+        }
+      } else {
+        // Final round complete
+        setTimeout(() => {
+          navigate("/wnrs");
+        }, 1200);
+      }
 
-            /*
-             * Complete the current chapter
-             * before moving forward.
-             */
-            completeCurrentChapter(
-              currentStage.chapter,
-            );
+      return;
+    }
 
-            const updatedSession:
-              MeetingSession = {
-                ...session,
-                currentStageId:
-                  nextStage.id,
-              };
+    // Move to next stage
+    completeCurrentChapter(currentStage.chapter);
 
-            /*
-             * Give the transition UI time
-             * to appear before changing
-             * content.
-             */
-            setTransitionState(
-              "transitioning",
-            );
+    const updatedSession: MeetingSession = {
+      ...session,
+      currentStageId: nextStage.id,
+    };
 
-            window.setTimeout(() => {
-              updateSession(
-                updatedSession,
-              );
+    setTransitionState("transitioning");
 
-              setSession(
-                updatedSession,
-              );
-            }, 900);
-
-            return 0;
-          },
-        );
-      }, 1000);
-
-    return () =>
-      window.clearInterval(
-        interval,
-      );
+    setTimeout(() => {
+      updateSession(updatedSession);
+      setSession(updatedSession);
+    }, 900);
   }, [
     state,
     transitionState,
+    remainingSeconds,
     session,
     currentStage,
     completeCurrentChapter,
     navigate,
+    event,
   ]);
 
   /*
