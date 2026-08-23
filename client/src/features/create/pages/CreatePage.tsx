@@ -10,30 +10,23 @@ import { createEvent } from "../services/createEventService";
 
 import {
   setJoinedEvent,
-  setJoinedParticipant,
 } from "@/features/join/services/joinSession";
 
 export function CreatePage() {
   const navigate = useNavigate();
 
   async function handleCreate(
-    hostName: string,
+    gatheringName: string,
   ) {
     try {
-      const { event, participant } =
-        await createEvent({ hostName });
+      const { event } =
+        await createEvent({ gatheringName });
 
       setJoinedEvent({
         id: event.id,
         code: event.code,
         name: event.name,
         created_at: event.created_at,
-      });
-
-      setJoinedParticipant({
-        id: participant.id,
-        name: participant.display_name,
-        status: participant.presence_status,
       });
 
       navigate("/create/ready");
@@ -48,7 +41,7 @@ export function CreatePage() {
         <PageEnter>
           <section className="flex min-h-screen flex-col justify-center">
             <Heading>
-              Create a meetup
+              Create a gathering
             </Heading>
 
             <Text className="mt-3 max-w-md text-white/60">

@@ -18,11 +18,11 @@ function generateJoinCode(): string {
 }
 
 export interface CreateEventInput {
-  hostName: string;
+  gatheringName: string;
 }
 
 export async function createEvent({
-  hostName,
+  gatheringName,
 }: CreateEventInput) {
   /**
    * Get the currently authenticated
@@ -61,7 +61,7 @@ export async function createEvent({
   } = await supabase
     .from("events")
     .insert({
-      name: "Ki Meetup",
+      name: gatheringName,
 
       code,
 
@@ -79,37 +79,8 @@ export async function createEvent({
     throw eventError;
   }
 
-  /**
-   * Add the host as the first
-   * event participant.
-   */
-  const {
-    data: participantData,
-    error: participantError,
-  } = await supabase
-    .from("event_participants")
-    .insert({
-      event_id: event.id,
-
-      participant_id: user.id,
-
-      display_name: hostName,
-
-      presence_status:
-        "available",
-
-      partner_rotation: 1,
-    })
-    .select("id, display_name, presence_status")
-    .single();
-
-  if (participantError) {
-    throw participantError;
-  }
-
   return {
     event,
     code,
-    participant: participantData,
   };
 }
