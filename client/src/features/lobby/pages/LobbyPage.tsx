@@ -5,14 +5,12 @@ import { PageEnter } from "@/lib/motion";
 import { getSession } from "@/features/meeting/services/meetingSession";
 import { TOTAL_PARTNER_ROTATIONS } from "@/features/event/constants/event";
 
-import { LobbyDebugPanel } from "../components/LobbyDebugPanel";
 import { LobbyContent } from "../components/LobbyContent";
 import { useLobbyState } from "../hooks/useLobbyState";
 
 export function LobbyPage() {
   const {
     state,
-    setState,
     participants,
     selectedParticipant,
 
@@ -61,8 +59,6 @@ export function LobbyPage() {
           </section>
         </PageEnter>
       </Container>
-
-      <LobbyDebugPanel setState={setState} />
     </main>
   );
 }
