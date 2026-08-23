@@ -13,6 +13,8 @@ import { LobbyPage } from "@/features/lobby/pages/LobbyPage";
 import { MeetingPage } from "@/features/meeting/pages/MeetingPage";
 import { CreatePage } from "@/features/create/pages/CreatePage";
 import { EventReadyPage } from "@/features/create/pages/EventReadyPage";
+import { ParticipationChoicePage } from "@/features/create/pages/ParticipationChoicePage";
+import { HostNamePage } from "@/features/create/pages/HostNamePage";
 import { WnrsPage } from "@/features/wnrs/pages/WnrsPage";
 import { GatherAroundPage } from "@/features/gather-around/pages/GatherAroundPage";
 import { TableTopicsPage } from "@/features/tabletopics/pages/TableTopicsPage";
@@ -35,6 +37,16 @@ export const router = createBrowserRouter([
       {
         path: "/create/ready",
         element: <EventReadyPage />,
+      },
+
+      {
+        path: "/create/participate",
+        element: <ParticipationChoicePage />,
+      },
+
+      {
+        path: "/create/name",
+        element: <HostNamePage />,
       },
 
       {

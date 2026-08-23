@@ -55,7 +55,7 @@ export function EventReadyPage() {
   }
 
   function handleContinue() {
-    navigate("/lobby");
+    navigate("/create/participate");
   }
 
   return (
@@ -67,6 +67,9 @@ export function EventReadyPage() {
               {/* Success heading */}
               <div className="space-y-3">
                 <Heading>Event ready</Heading>
+                <Text className="text-lg font-medium text-white/90">
+                  {event.name}
+                </Text>
                 <Text className="text-white/60">
                   Share this code or QR with others to join
                 </Text>
@@ -124,10 +127,10 @@ export function EventReadyPage() {
                 )}
               </div>
 
-              {/* Continue to lobby */}
+              {/* Continue to participation choice */}
               <div className="pt-4">
                 <Button className="w-full" onClick={handleContinue}>
-                  Continue to lobby
+                  Continue
                 </Button>
               </div>
             </div>
