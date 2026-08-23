@@ -29,8 +29,8 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
 
       try {
         // Request camera permission and start scanning
-        const controls = await reader.decodeFromVideoDevice(
-          undefined, // Use default camera
+        await reader.decodeFromVideoDevice(
+          null, // Use default camera
           videoRef.current,
           (result: Result, error?: Exception) => {
             if (!mounted) return;
@@ -46,13 +46,6 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
             }
           }
         );
-
-        // Store controls for cleanup
-        if (mounted) {
-          readerRef.current = reader;
-        } else {
-          controls.stop();
-        }
       } catch (err) {
         if (!mounted) return;
 
