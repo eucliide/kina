@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BrowserQRCodeReader } from "@zxing/library";
+import { BrowserQRCodeReader, Result, Exception } from "@zxing/library";
 import { X } from "lucide-react";
 
 import { Button, Text } from "@/components/ui";
@@ -32,7 +32,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
         const controls = await reader.decodeFromVideoDevice(
           undefined, // Use default camera
           videoRef.current,
-          (result, error) => {
+          (result: Result, error?: Exception) => {
             if (!mounted) return;
 
             if (result) {

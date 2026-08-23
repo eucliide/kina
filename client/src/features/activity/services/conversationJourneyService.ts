@@ -85,7 +85,7 @@ export async function getConversationPrompt(
       | "gettingComfortable"
       | "sharingStories"
       | "discoveringValues"
-      | "lookingForward",
+      | "reflection",
     text: prompt.prompt_text,
   };
 }

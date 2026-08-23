@@ -32,6 +32,8 @@ export function EventReadyPage() {
   const joinUrl = `${window.location.origin}/join?code=${event.code}`;
 
   async function handleCopy() {
+    if (!event) return;
+    
     try {
       await navigator.clipboard.writeText(event.code);
       setCopied(true);
@@ -42,6 +44,8 @@ export function EventReadyPage() {
   }
 
   async function handleShare() {
+    if (!event) return;
+    
     try {
       await navigator.share({
         title: "Join my Ki meetup",
