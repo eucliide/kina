@@ -1,6 +1,18 @@
 import { supabase } from "../supabase";
 import type { Event } from "./event.types";
 
+/**
+ * Validates if an event can be joined.
+ * 
+ * An event is joinable if:
+ * - It exists
+ * - It is in "waiting" or "activity" stage
+ * - It has not been completed
+ */
+async function isEventJoinable(event: Event): Promise<boolean> {
+  return event.stage === "waiting" || event.stage === "activity";
+}
+
 export async function getEventByCode(
   code: string
 ): Promise<Event> {
@@ -11,8 +23,17 @@ export async function getEventByCode(
     .single();
 
   if (error) {
-    throw error;
+    throw new Error("Event not found");
   }
 
-  return data as Event;
+  const event = data as Event;
+
+  // Validate event is joinable
+  const joinable = await isEventJoinable(event);
+  
+  if (!joinable) {
+    throw new Error("This gathering has ended");
+  }
+
+  return event;
 }
