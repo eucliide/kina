@@ -45,7 +45,7 @@ export function CreatePage() {
             </Heading>
 
             <Text className="mt-3 max-w-md text-white/60">
-              Start a new Ki gathering
+              Start a new Kina gathering
               and invite others using a
               simple code.
             </Text>
