@@ -14,11 +14,13 @@ import {
   ConversationComplete,
   MeetingHeader,
   MeetingTimer,
+  PartnerAwayNotice,
 } from "../components";
 import { MeetupDetails } from "../components/MeetupDetails";
 import { MissionQuickView } from "@/features/mission/components/MissionQuickView";
 
 import { useMeeting } from "../hooks/useMeeting";
+import { usePartnerPresence } from "../hooks/usePartnerPresence";
 
 export function MeetingPage() {
   const {
@@ -38,6 +40,12 @@ export function MeetingPage() {
 
   const event = getJoinedEvent();
   const participant = getJoinedParticipant();
+
+  const { isPartnerOnline } = usePartnerPresence(
+    event?.id ?? "",
+    session?.participant.id ?? "",
+    participant?.id ?? ""
+  );
 
   useEffect(() => {
     if (!event || !participant) return;
@@ -68,6 +76,13 @@ export function MeetingPage() {
         >
           <motion.div variants={listItem}>
             <MeetingHeader partnerName={session.participant.name} />
+          </motion.div>
+
+          <motion.div variants={listItem}>
+            <PartnerAwayNotice 
+              isVisible={!isPartnerOnline && state === "meeting"}
+              partnerName={session.participant.name}
+            />
           </motion.div>
 
           <motion.div variants={listItem} className="mb-6">
