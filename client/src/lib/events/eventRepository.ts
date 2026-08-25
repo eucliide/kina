@@ -2,6 +2,22 @@ import { supabase } from "../supabase";
 import type { Event } from "./event.types";
 
 /**
+ * Type representing the response from lookup_event_by_code RPC.
+ */
+type EventLookupRow = {
+  id: string;
+  code: string;
+  name: string;
+  stage: string;
+  host_id: string | null;
+  current_activity_id: string | null;
+  current_round: number | null;
+  round_started_at: string | null;
+  round_ends_at: string | null;
+  created_at: string | null;
+};
+
+/**
  * Loads an event by its join code.
  * 
  * Uses secure RPC that validates:
@@ -20,18 +36,21 @@ export async function getEventByCode(
     throw new Error("Invalid gathering code");
   }
 
+  // Type-narrow the RPC response
+  const eventRow = data as EventLookupRow;
+
   // RPC already validates joinability and expiration server-side
-  // Expand minimal return to match Event type
+  // Expand to match Event type
   return {
-    id: data.id,
-    code: data.code,
-    name: data.name,
-    stage: data.stage,
-    host_id: data.host_id || '',
-    current_activity_id: data.current_activity_id || null,
-    current_round: data.current_round || null,
-    round_started_at: data.round_started_at || null,
-    round_ends_at: data.round_ends_at || null,
-    created_at: data.created_at || new Date().toISOString(),
-  } as Event;
+    id: eventRow.id,
+    code: eventRow.code,
+    name: eventRow.name,
+    stage: eventRow.stage as "waiting" | "activity" | "completed",
+    host_id: eventRow.host_id ?? '',
+    current_activity_id: eventRow.current_activity_id,
+    current_round: eventRow.current_round,
+    round_started_at: eventRow.round_started_at,
+    round_ends_at: eventRow.round_ends_at,
+    created_at: eventRow.created_at ?? new Date().toISOString(),
+  };
 }

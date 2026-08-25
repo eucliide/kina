@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 /**
+ * Type representing the presence payload we track.
+ */
+type MeetingPresence = {
+  user_id: string;
+  online_at: string;
+};
+
+/**
  * Tracks partner presence using Supabase Realtime Presence.
  * 
  * Returns whether the partner is currently online and connected
@@ -27,22 +35,24 @@ export function usePartnerPresence(
 
     channel
       .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState();
+        const state = channel.presenceState<MeetingPresence>();
         const partnerPresent = Object.keys(state).some((key) => 
-          key === partnerId || state[key]?.some((p: { user_id?: string }) => p.user_id === partnerId)
+          key === partnerId || state[key]?.some((p) => p.user_id === partnerId)
         );
         setIsPartnerOnline(partnerPresent);
       })
       .on("presence", { event: "join" }, ({ key, newPresences }) => {
+        const presences = newPresences as MeetingPresence[];
         const partnerJoined = key === partnerId || 
-          newPresences.some((p: { user_id?: string }) => p.user_id === partnerId);
+          presences.some((p) => p.user_id === partnerId);
         if (partnerJoined) {
           setIsPartnerOnline(true);
         }
       })
       .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
+        const presences = leftPresences as MeetingPresence[];
         const partnerLeft = key === partnerId ||
-          leftPresences.some((p: { user_id?: string }) => p.user_id === partnerId);
+          presences.some((p) => p.user_id === partnerId);
         if (partnerLeft) {
           setIsPartnerOnline(false);
         }
