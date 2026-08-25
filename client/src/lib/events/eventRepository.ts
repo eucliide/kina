@@ -2,71 +2,36 @@ import { supabase } from "../supabase";
 import type { Event } from "./event.types";
 
 /**
- * Maximum age for an event before it's considered expired (in hours).
- */
-const EVENT_EXPIRATION_HOURS = 48;
-
-/**
- * Checks if an event has expired based on its creation time.
- */
-function isEventExpired(event: Event): boolean {
-  const createdAt = new Date(event.created_at);
-  const now = new Date();
-  const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-  
-  // Don't expire active events
-  if (event.stage === "activity") {
-    return false;
-  }
-  
-  return hoursSinceCreation > EVENT_EXPIRATION_HOURS;
-}
-
-/**
- * Validates if an event can be joined.
+ * Loads an event by its join code.
  * 
- * An event is joinable if:
- * - It exists
- * - It is in "waiting" or "activity" stage
- * - It has not been completed
- * - It has not expired
+ * Uses secure RPC that validates:
+ * - Event exists
+ * - Event is joinable (waiting or activity stage)
+ * - Event has not expired (< 48 hours old)
  */
-async function isEventJoinable(event: Event): Promise<boolean> {
-  if (event.stage === "completed") {
-    return false;
-  }
-  
-  if (isEventExpired(event)) {
-    return false;
-  }
-  
-  return event.stage === "waiting" || event.stage === "activity";
-}
-
 export async function getEventByCode(
   code: string
 ): Promise<Event> {
   const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("code", code)
+    .rpc("lookup_event_by_code", { join_code: code })
     .single();
 
   if (error || !data) {
     throw new Error("Invalid gathering code");
   }
 
-  const event = data as Event;
-
-  // Validate event is joinable
-  const joinable = await isEventJoinable(event);
-  
-  if (!joinable) {
-    if (event.stage === "completed") {
-      throw new Error("This gathering has ended");
-    }
-    throw new Error("This gathering is no longer available");
-  }
-
-  return event;
+  // RPC already validates joinability and expiration server-side
+  // Expand minimal return to match Event type
+  return {
+    id: data.id,
+    code: data.code,
+    name: data.name,
+    stage: data.stage,
+    host_id: data.host_id || '',
+    current_activity_id: data.current_activity_id || null,
+    current_round: data.current_round || null,
+    round_started_at: data.round_started_at || null,
+    round_ends_at: data.round_ends_at || null,
+    created_at: data.created_at || new Date().toISOString(),
+  } as Event;
 }
