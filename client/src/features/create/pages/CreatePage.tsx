@@ -22,10 +22,17 @@ export function CreatePage() {
       const { event } =
         await createEvent({ gatheringName });
 
+      // Map database event to Event type
       setJoinedEvent({
         id: event.id,
         code: event.code,
         name: event.name,
+        host_id: event.host_id,
+        stage: event.stage as "waiting" | "activity" | "completed",
+        current_activity_id: event.current_activity_id,
+        current_round: null,
+        round_started_at: null,
+        round_ends_at: null,
         created_at: event.created_at,
       });
 

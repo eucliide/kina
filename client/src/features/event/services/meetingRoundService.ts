@@ -1,6 +1,24 @@
 import { supabase } from "@/lib/supabase";
 
 /**
+ * Type for start_event_round RPC response.
+ */
+type StartRoundResponse = {
+  round_started_at: string;
+  round_ends_at: string;
+};
+
+/**
+ * Type for advance_event_round RPC response.
+ */
+type AdvanceRoundResponse = {
+  success: boolean;
+  current_round: number;
+  round_started_at: string;
+  round_ends_at: string;
+};
+
+/**
  * Starts a new round for an event.
  * 
  * Uses secure RPC that:
@@ -27,9 +45,11 @@ export async function startRound(
     return null;
   }
 
+  const result = data as StartRoundResponse;
+
   return {
-    roundStartedAt: data.round_started_at,
-    roundEndsAt: data.round_ends_at,
+    roundStartedAt: result.round_started_at,
+    roundEndsAt: result.round_ends_at,
   };
 }
 
@@ -57,7 +77,8 @@ export async function advanceToNextRound(
     return false;
   }
 
-  return data?.success ?? false;
+  const result = data as AdvanceRoundResponse;
+  return result?.success ?? false;
 }
 
 /**

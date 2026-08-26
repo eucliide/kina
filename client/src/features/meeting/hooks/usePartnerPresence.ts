@@ -42,17 +42,23 @@ export function usePartnerPresence(
         setIsPartnerOnline(partnerPresent);
       })
       .on("presence", { event: "join" }, ({ key, newPresences }) => {
-        const presences = newPresences as MeetingPresence[];
+        // newPresences is an array of Presence objects, extract our payload
         const partnerJoined = key === partnerId || 
-          presences.some((p) => p.user_id === partnerId);
+          newPresences.some((presence) => {
+            const payload = presence as unknown as MeetingPresence;
+            return payload.user_id === partnerId;
+          });
         if (partnerJoined) {
           setIsPartnerOnline(true);
         }
       })
       .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
-        const presences = leftPresences as MeetingPresence[];
+        // leftPresences is an array of Presence objects, extract our payload
         const partnerLeft = key === partnerId ||
-          presences.some((p) => p.user_id === partnerId);
+          leftPresences.some((presence) => {
+            const payload = presence as unknown as MeetingPresence;
+            return payload.user_id === partnerId;
+          });
         if (partnerLeft) {
           setIsPartnerOnline(false);
         }
