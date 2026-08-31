@@ -158,3 +158,55 @@ export const rotationCounter: Variants = {
     transition: { duration: 0.18, ease: ease.in },
   },
 };
+
+/**
+ * PROGRESS — passport stamp lands.
+ */
+export const passportStamp: Variants = {
+  hidden: {
+    opacity: 0,
+    scale: 1.45,
+    rotate: -16,
+  },
+
+  visible: {
+    opacity: 1,
+    scale: 1,
+    rotate: -6,
+
+    transition: {
+      duration: 0.5,
+      ease: ease.out,
+    },
+  },
+};
+
+/**
+ * TRANSITION — letter rises from envelope.
+ */
+export const letterReveal: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 40,
+  },
+
+  visible: {
+    opacity: 1,
+    y: 0,
+
+    transition: {
+      duration: 0.55,
+      ease: ease.out,
+    },
+  },
+
+  exit: {
+    opacity: 0,
+    y: -6,
+
+    transition: {
+      duration: 0.22,
+      ease: ease.in,
+    },
+  },
+};

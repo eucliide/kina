@@ -41,7 +41,8 @@ interface IncomingInvitation {
 /**
  * Computes the next rotation number,
  * marks the current user as inConversation,
- * and creates the meeting session.
+ * creates the meeting session, and starts
+ * the event round if needed.
  *
  * Single source of truth for rotation
  * advancement — used by both the sender
@@ -64,6 +65,11 @@ async function startConversation(
   await updatePresenceStatus(eventId, "inConversation");
 
   createSession(partner, nextRotation);
+  
+  // Initialize the round timing when starting a conversation
+  // This sets round_started_at and round_ends_at on the event
+  const { startRound } = await import("@/features/event/services/meetingRoundService");
+  await startRound(eventId, nextRotation);
 }
 
 export function useLobbyState() {

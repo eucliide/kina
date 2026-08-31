@@ -1,15 +1,24 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import type { ConversationPrompt } from "@/features/activity/types/conversationPrompt";
 
-import { getConversationPrompt } from "@/features/activity/services/conversationJourneyService";
+import {
+  getConversationPrompt,
+} from "@/features/activity/services/conversationJourneyService";
 
-import { useConversationPassport } from "@/features/passport/hooks/useConversationPassport";
+import {
+  useConversationPassport,
+} from "@/features/passport/hooks/useConversationPassport";
 
 import {
   getCurrentStage,
-  getNextStage,
+  getRemainingStageSeconds,
+  getStageForElapsedSeconds,
 } from "../services/stageService";
 
 import {
@@ -21,15 +30,25 @@ import {
   TOTAL_PARTNER_ROTATIONS,
 } from "@/features/event/constants/event";
 
-import { getJoinedEvent } from "@/features/join/services/joinSession";
-import { 
+import {
+  getJoinedEvent,
+} from "@/features/join/services/joinSession";
+
+import {
+  advanceToNextRound,
   getEventMeetingState,
   startRound,
-  advanceToNextRound,
 } from "@/features/event/services/meetingRoundService";
+
 import { supabase } from "@/lib/supabase";
 
 import type { MeetingSession } from "../types";
+
+/**
+ * Conversation Journey stage IDs.
+ */
+type ConversationStageId =
+  ConversationPrompt["stageId"];
 
 export function useMeeting() {
   const navigate = useNavigate();
@@ -37,18 +56,28 @@ export function useMeeting() {
   const [state, setState] =
     useState("meeting");
 
-  const [currentPrompt, setCurrentPrompt] =
-    useState<
-      ConversationPrompt | undefined
-    >();
-
   const [
     transitionState,
     setTransitionState,
   ] = useState("idle");
 
+  const [
+    currentPrompt,
+    setCurrentPrompt,
+  ] = useState<
+    ConversationPrompt | undefined
+  >();
+
+  /**
+   * A MeetingPage is invalid without
+   * an active session.
+   *
+   * Because we throw when none exists,
+   * `session` is a MeetingSession,
+   * not MeetingSession | null.
+   */
   const [session, setSession] =
-    useState(() => {
+    useState<MeetingSession>(() => {
       const existing = getSession();
 
       if (!existing) {
@@ -60,10 +89,54 @@ export function useMeeting() {
       return existing;
     });
 
-  const [roundEndsAt, setRoundEndsAt] = useState<Date | null>(null);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
+  /**
+   * Supabase owns the complete
+   * 20-minute partner rotation.
+   */
+  const [
+    roundStartedAt,
+    setRoundStartedAt,
+  ] = useState<Date | null>(null);
+
+  const [
+    roundEndsAt,
+    setRoundEndsAt,
+  ] = useState<Date | null>(null);
+
+  /**
+   * null means:
+   * authoritative timing has not loaded yet.
+   *
+   * It must NOT begin at zero because zero
+   * means the current stage has actually ended.
+   */
+  const [
+    remainingSeconds,
+    setRemainingSeconds,
+  ] = useState<number | null>(null);
 
   const event = getJoinedEvent();
+
+  /**
+   * A valid MeetingSession must always contain
+   * a valid Conversation Journey stage.
+   */
+  const resolvedStage =
+    getCurrentStage(
+      session.currentStageId,
+    );
+
+  if (!resolvedStage) {
+    throw new Error(
+      `Unknown conversation stage: ${session.currentStageId}`,
+    );
+  }
+
+  /**
+   * After the validation above,
+   * currentStage is deliberately non-optional.
+   */
+  const currentStage = resolvedStage;
 
   const {
     passport,
@@ -72,144 +145,421 @@ export function useMeeting() {
     session.partnerRotation,
   );
 
-  const currentStage =
-    getCurrentStage(
-      session.currentStageId,
-    );
-
-  if (!currentStage) {
-    throw new Error(
-      "Unknown conversation stage.",
-    );
-  }
-
-  /*
-   * Initialize authoritative meeting state from database.
+  /**
+   * ------------------------------------------------
+   * INITIALIZE AUTHORITATIVE ROTATION
+   * ------------------------------------------------
    */
   useEffect(() => {
-    if (!event) return;
+    if (!event) {
+      return;
+    }
 
-    let mounted = true;
+    /**
+     * Capture primitives/objects after narrowing.
+     *
+     * TypeScript can safely carry these into
+     * the async function.
+     */
+    const eventId = event.id;
+    const partnerRotation =
+      session.partnerRotation;
 
-    async function initializeMeetingState() {
-      const meetingState = await getEventMeetingState(event!.id);
+    let cancelled = false;
 
-      if (!mounted) return;
+    async function initializeRound() {
+      try {
+        const meetingState =
+          await getEventMeetingState(
+            eventId,
+          );
 
-      if (meetingState?.roundEndsAt) {
-        // Use existing authoritative timestamp
-        setRoundEndsAt(new Date(meetingState.roundEndsAt));
-      } else {
-        // Start the first round
-        const result = await startRound(event!.id, session.partnerRotation);
-        if (result && mounted) {
-          setRoundEndsAt(new Date(result.roundEndsAt));
+        if (cancelled) {
+          return;
         }
+
+        /**
+         * Existing authoritative rotation.
+         */
+        if (
+          meetingState?.roundStartedAt &&
+          meetingState.roundEndsAt
+        ) {
+          setRoundStartedAt(
+            new Date(
+              meetingState.roundStartedAt,
+            ),
+          );
+
+          setRoundEndsAt(
+            new Date(
+              meetingState.roundEndsAt,
+            ),
+          );
+
+          /**
+           * Restore authoritative rotation number
+           * after reload/reconnection.
+           */
+          if (
+            meetingState.currentRound &&
+            meetingState.currentRound !==
+              partnerRotation
+          ) {
+            const restoredSession:
+              MeetingSession = {
+              ...session,
+              partnerRotation:
+                meetingState.currentRound,
+            };
+
+            updateSession(
+              restoredSession,
+            );
+
+            setSession(
+              restoredSession,
+            );
+          }
+
+          return;
+        }
+
+        /**
+         * No rotation timestamp exists yet.
+         * Start it through the secure RPC.
+         */
+        const started =
+          await startRound(
+            eventId,
+            partnerRotation,
+          );
+
+        if (
+          cancelled ||
+          !started
+        ) {
+          return;
+        }
+
+        setRoundStartedAt(
+          new Date(
+            started.roundStartedAt,
+          ),
+        );
+
+        setRoundEndsAt(
+          new Date(
+            started.roundEndsAt,
+          ),
+        );
+      } catch (error) {
+        console.error(
+          "Failed to initialize meeting round:",
+          error,
+        );
       }
     }
 
-    initializeMeetingState();
+    initializeRound();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
-  }, [event, session.partnerRotation]);
+  }, [
+    event?.id,
+    session.partnerRotation,
+  ]);
 
-  /*
-   * Subscribe to meeting state changes via Realtime.
+  /**
+   * ------------------------------------------------
+   * REALTIME ROTATION SYNCHRONIZATION
+   * ------------------------------------------------
    */
   useEffect(() => {
-    if (!event) return;
+    if (!event) {
+      return;
+    }
+
+    const eventId = event.id;
+    const localRotation =
+      session.partnerRotation;
 
     const channel = supabase
-      .channel(`event-meeting:${event.id}`)
+      .channel(
+        `event-meeting:${eventId}`,
+      )
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
           table: "events",
-          filter: `id=eq.${event.id}`,
+          filter: `id=eq.${eventId}`,
         },
         (payload) => {
-          const updatedEvent = payload.new as {
-            round_ends_at?: string;
-            current_round?: number;
-          };
+          const updatedEvent =
+            payload.new as {
+              current_round?:
+                number | null;
 
-          if (updatedEvent.round_ends_at) {
-            setRoundEndsAt(new Date(updatedEvent.round_ends_at));
+              round_started_at?:
+                string | null;
+
+              round_ends_at?:
+                string | null;
+            };
+
+          if (
+            updatedEvent.round_started_at
+          ) {
+            setRoundStartedAt(
+              new Date(
+                updatedEvent.round_started_at,
+              ),
+            );
           }
 
-          if (updatedEvent.current_round && updatedEvent.current_round !== session.partnerRotation) {
-            // Round changed - reload page to sync
-            window.location.reload();
+          if (
+            updatedEvent.round_ends_at
+          ) {
+            setRoundEndsAt(
+              new Date(
+                updatedEvent.round_ends_at,
+              ),
+            );
           }
-        }
+
+          /**
+           * A new partner rotation belongs
+           * to the lobby/pairing flow.
+           *
+           * Do NOT reload the whole browser.
+           */
+          if (
+            updatedEvent.current_round &&
+            updatedEvent.current_round !==
+              localRotation
+          ) {
+            navigate("/lobby");
+          }
+        },
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(
+        channel,
+      );
     };
-  }, [event, session.partnerRotation]);
+  }, [
+    event?.id,
+    session.partnerRotation,
+    navigate,
+  ]);
 
-  /*
-   * Calculate remaining time from authoritative timestamp.
+  /**
+   * ------------------------------------------------
+   * DERIVE CURRENT 6 / 6 / 6 / 2 STAGE
+   * ------------------------------------------------
+   *
+   * Supabase owns one 20-minute rotation.
+   *
+   * We derive:
+   *
+   * 00:00–06:00 Getting Comfortable
+   * 06:00–12:00 Sharing Stories
+   * 12:00–18:00 Discovering Values
+   * 18:00–20:00 Reflection
    */
   useEffect(() => {
-    if (!roundEndsAt) return;
-
-    function updateRemainingTime() {
-      if (!roundEndsAt) return;
-      
-      const now = Date.now();
-      const endsAtTime = roundEndsAt.getTime();
-      const remaining = Math.max(
-        0,
-        Math.ceil((endsAtTime - now) / 1000)
-      );
-      setRemainingSeconds(remaining);
+    if (!roundStartedAt) {
+      setRemainingSeconds(null);
+      return;
     }
 
-    // Update immediately
-    updateRemainingTime();
+    /**
+     * Capture non-null Date so nested callbacks
+     * don't lose TypeScript narrowing.
+     */
+    const authoritativeStart =
+      roundStartedAt;
 
-    // Then update every second for display
-    const interval = setInterval(updateRemainingTime, 1000);
+    function synchronizeStage() {
+      const now = Date.now();
 
-    return () => clearInterval(interval);
-  }, [roundEndsAt]);
+      const elapsedSeconds =
+        Math.max(
+          0,
+          Math.floor(
+            (
+              now -
+              authoritativeStart.getTime()
+            ) / 1000,
+          ),
+        );
 
-  /*
-   * Load the shared prompt whenever the
-   * partner rotation or stage changes.
+      const derivedStage =
+        getStageForElapsedSeconds(
+          elapsedSeconds,
+        );
+
+      /**
+       * Stage changed according to
+       * authoritative elapsed time.
+       */
+      if (
+        derivedStage.id !==
+        session.currentStageId
+      ) {
+        const previousStage =
+          getCurrentStage(
+            session.currentStageId,
+          );
+
+        if (previousStage) {
+          completeCurrentChapter(
+            previousStage.chapter,
+          );
+        }
+
+        const updatedSession:
+          MeetingSession = {
+          ...session,
+          currentStageId:
+            derivedStage.id,
+        };
+
+        setTransitionState(
+          "transitioning",
+        );
+
+        updateSession(
+          updatedSession,
+        );
+
+        setSession(
+          updatedSession,
+        );
+
+        window.setTimeout(() => {
+          setTransitionState(
+            "idle",
+          );
+        }, 900);
+      }
+
+      /**
+       * Visible countdown is ONLY the
+       * current stage's remaining time.
+       */
+      const remaining =
+        getRemainingStageSeconds(
+          authoritativeStart,
+          derivedStage.id,
+          now,
+        );
+
+      setRemainingSeconds(
+        remaining,
+      );
+    }
+
+    synchronizeStage();
+
+    const interval =
+      window.setInterval(
+        synchronizeStage,
+        1000,
+      );
+
+    return () => {
+      window.clearInterval(
+        interval,
+      );
+    };
+  }, [
+    roundStartedAt,
+    session,
+    completeCurrentChapter,
+  ]);
+
+  /**
+   * ------------------------------------------------
+   * LOAD CURRENT STAGE PROMPT
+   * ------------------------------------------------
    */
   useEffect(() => {
+    const rotation =
+      session.partnerRotation;
+
+    const stageId =
+      session.currentStageId as
+        ConversationStageId;
+
+    const stageTitle =
+      currentStage.title;
+
     let cancelled = false;
 
     async function loadPrompt() {
       try {
-        setCurrentPrompt(undefined);
+        setCurrentPrompt(
+          undefined,
+        );
 
         const prompt =
           await getConversationPrompt(
-            session.partnerRotation,
-            session.currentStageId,
+            rotation,
+            stageId,
           );
 
-        if (!cancelled) {
-          setCurrentPrompt(prompt);
+        if (cancelled) {
+          return;
         }
+
+        if (prompt) {
+          setCurrentPrompt(
+            prompt,
+          );
+
+          return;
+        }
+
+        /**
+         * Temporary safe fallback.
+         *
+         * The UI stays functional while prompt
+         * data is being verified.
+         */
+        setCurrentPrompt({
+          id:
+            `fallback-${rotation}-${stageId}`,
+
+          stageId,
+
+          text:
+            `Let's talk about ${stageTitle.toLowerCase()}.`,
+        });
       } catch (error) {
         console.error(
           "Failed to load conversation prompt:",
           error,
         );
 
-        if (!cancelled) {
-          setCurrentPrompt(undefined);
+        if (cancelled) {
+          return;
         }
+
+        setCurrentPrompt({
+          id:
+            `fallback-${rotation}-${stageId}`,
+
+          stageId,
+
+          text:
+            `Let's talk about ${stageTitle.toLowerCase()}.`,
+        });
       }
     }
 
@@ -221,103 +571,159 @@ export function useMeeting() {
   }, [
     session.partnerRotation,
     session.currentStageId,
+    currentStage.title,
   ]);
 
-  /*
-   * Reset transition state when stage changes.
-   */
-  useLayoutEffect(() => {
-    setTransitionState("idle");
-  }, [session.currentStageId]);
-
-  /*
-   * Handle round end and stage transitions.
+  /**
+   * ------------------------------------------------
+   * ROTATION COMPLETION
+   * ------------------------------------------------
+   *
+   * Stage boundaries are derived locally from the
+   * authoritative start timestamp.
+   *
+   * The DB round advances ONLY once the complete
+   * 20-minute rotation ends.
    */
   useEffect(() => {
-    if (state !== "meeting") {
+    if (
+      !event ||
+      !roundEndsAt
+    ) {
       return;
     }
 
-    if (transitionState === "transitioning") {
+    const eventId = event.id;
+
+    const authoritativeEnd =
+      roundEndsAt;
+
+    const partnerRotation =
+      session.partnerRotation;
+
+    /**
+     * Only reflection may complete
+     * the entire rotation.
+     */
+    if (
+      currentStage.id !==
+      "reflection"
+    ) {
       return;
     }
 
-    if (remainingSeconds > 1) {
+    if (
+      remainingSeconds === null ||
+      remainingSeconds > 0
+    ) {
       return;
     }
 
-    // Time is up
-    const nextStage = getNextStage(session.currentStageId);
+    if (
+      Date.now() <
+      authoritativeEnd.getTime()
+    ) {
+      return;
+    }
 
-    if (!nextStage) {
-      // Round complete
-      setTransitionState("transitioning");
-      completeCurrentChapter(currentStage.chapter);
+    if (
+      transitionState ===
+      "transitioning"
+    ) {
+      return;
+    }
 
-      if (session.partnerRotation < TOTAL_PARTNER_ROTATIONS) {
-        // Advance to next round
-        if (event) {
-          advanceToNextRound(event.id, session.partnerRotation).then((success) => {
-            if (success) {
-              setTimeout(() => {
-                navigate("/lobby");
-              }, 1200);
-            }
-          });
+    setTransitionState(
+      "transitioning",
+    );
+
+    completeCurrentChapter(
+      currentStage.chapter,
+    );
+
+    /**
+     * More partner rotations remain.
+     */
+    if (
+      partnerRotation <
+      TOTAL_PARTNER_ROTATIONS
+    ) {
+      advanceToNextRound(
+        eventId,
+        partnerRotation,
+      ).then((success) => {
+        if (!success) {
+          setTransitionState(
+            "idle",
+          );
+
+          return;
         }
-      } else {
-        // Final round complete
-        setTimeout(() => {
-          navigate("/wnrs");
+
+        window.setTimeout(() => {
+          navigate("/lobby");
         }, 1200);
-      }
+      });
 
       return;
     }
 
-    // Move to next stage
-    completeCurrentChapter(currentStage.chapter);
-
-    const updatedSession: MeetingSession = {
-      ...session,
-      currentStageId: nextStage.id,
-    };
-
-    setTransitionState("transitioning");
-
-    setTimeout(() => {
-      updateSession(updatedSession);
-      setSession(updatedSession);
-    }, 900);
+    /**
+     * Entire Conversation Journey complete.
+     */
+    window.setTimeout(() => {
+      navigate("/wnrs");
+    }, 1200);
   }, [
-    state,
-    transitionState,
+    event?.id,
+    roundEndsAt,
     remainingSeconds,
-    session,
     currentStage,
+    session.partnerRotation,
+    transitionState,
     completeCurrentChapter,
     navigate,
-    event,
   ]);
 
-  /*
-   * Temporary timing hooks.
+  /**
+   * ------------------------------------------------
+   * SOUND CHECKPOINTS
+   * ------------------------------------------------
    */
   useEffect(() => {
     if (
       remainingSeconds === 60 ||
       remainingSeconds === 10
     ) {
-      console.log("Beep");
+      console.log(
+        "Meeting sound:",
+        remainingSeconds,
+      );
     }
-  }, [remainingSeconds]);
+  }, [
+    remainingSeconds,
+  ]);
 
-  const minutes = Math.floor(
-    remainingSeconds / 60,
-  );
+  /**
+   * ------------------------------------------------
+   * TIMER DISPLAY
+   * ------------------------------------------------
+   *
+   * Before authoritative timing loads,
+   * display the full duration of the first/current
+   * stage rather than 00:00.
+   */
+  const displaySeconds =
+    remainingSeconds ??
+    currentStage.duration;
+
+  const minutes =
+    Math.floor(
+      displaySeconds / 60,
+    );
 
   const seconds =
-    remainingSeconds % 60;
+    displaySeconds % 60;
 
   return {
     state,
@@ -333,10 +739,16 @@ export function useMeeting() {
 
     currentPrompt,
 
-    remainingSeconds,
+    remainingSeconds:
+      displaySeconds,
 
-    remainingTime: `${minutes}:${seconds
-      .toString()
-      .padStart(2, "0")}`,
+    remainingTime:
+      `${minutes}:${seconds
+        .toString()
+        .padStart(2, "0")}`,
+
+    roundStartedAt,
+
+    roundEndsAt,
   };
 }

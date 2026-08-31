@@ -13,27 +13,24 @@ export const CONVERSATION_STAGES = [
     id: "gettingComfortable",
     chapter: 1,
     title: "Getting Comfortable",
-    duration: 6 * 60, // 6:00
+    duration: 6 * 60,
   },
-
   {
     id: "sharingStories",
     chapter: 2,
     title: "Sharing Stories",
-    duration: 6 * 60, // 6:00
+    duration: 6 * 60,
   },
-
   {
     id: "discoveringValues",
     chapter: 3,
     title: "Discovering Values",
-    duration: 6 * 60, // 6:00
+    duration: 6 * 60,
   },
-
   {
     id: "reflection",
     chapter: 4,
     title: "Reflection",
-    duration: 2 * 60, // 2:00
+    duration: 2 * 60,
   },
 ] as const;
