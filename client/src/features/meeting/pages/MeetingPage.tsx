@@ -122,7 +122,7 @@ export function MeetingPage() {
 
     const timeout = window.setTimeout(() => {
       setShowStamp(false);
-    }, 1000);
+    }, 2500);
 
     return () => {
       window.clearTimeout(timeout);
@@ -149,8 +149,8 @@ export function MeetingPage() {
     async function loadMission() {
       try {
         const mission = await getExistingMission(
-          eventId,
-          participantId,
+          eventId!,
+          participantId!,
         );
 
         if (!cancelled && mission) {
@@ -162,64 +162,17 @@ export function MeetingPage() {
           error,
         );
       }
-  /*
-   * --------------------------------------------------------------------------
-   * PASSPORT STAMP
-   * --------------------------------------------------------------------------
-   *
-   * Maximum scene duration: 1.2 seconds.
-   * 
-   * Shows when transitioning between stages.
-   * Must not retrigger when passport updates during non-transition.
-   */
-
-  useEffect(() => {
-    if (
-      transitionState !==
-      "transitioning"
-    ) {
-      return;
     }
 
-    if (
-      !passport
-    ) {
-      return;
-    }
-
-    const completedChapter =
-      Math.max(
-        1,
-        passport.currentChapter - 1,
-      );
-
-    setStampedChapter(
-      completedChapter,
-    );
-
-    setShowStamp(
-      true,
-    );
-
-    const timeout =
-      window.setTimeout(
-        () => {
-          setShowStamp(
-            false,
-          );
-        },
-        2500,
-      );
+    loadMission();
 
     return () => {
-      window.clearTimeout(
-        timeout,
-      );
+      cancelled = true;
     };
-  }, [
-    transitionState,
-    passport?.currentChapter,
-  ]);Keep the page defensive even though the meeting
+  }, [event?.id, participant?.id]);
+
+  /*
+   * Keep the page defensive even though the meeting
    * hook should provide a valid stage.
    */
   if (!currentStage) {
@@ -373,8 +326,8 @@ export function MeetingPage() {
 
       {/* Meetup details */}
       <MeetupDetails
-        gatheringName={event.name}
-        eventCode={event.code}
+        gatheringName={event?.name ?? ""}
+        eventCode={event?.code ?? ""}
         isOpen={showMeetupDetails}
         onClose={() =>
           setShowMeetupDetails(false)
