@@ -1,5 +1,4 @@
 import {
-import {
   useEffect,
   useState,
 } from "react";
@@ -191,6 +190,13 @@ export function useMeeting() {
           meetingState?.roundStartedAt &&
           meetingState.roundEndsAt
         ) {
+          console.log(
+            "PHASE SOURCE",
+            "source: persisted event state",
+            `roundStartedAt: ${meetingState.roundStartedAt}`,
+            `roundEndsAt: ${meetingState.roundEndsAt}`,
+          );
+
           setRoundStartedAt(
             new Date(
               meetingState.roundStartedAt,
@@ -247,6 +253,13 @@ export function useMeeting() {
         ) {
           return;
         }
+
+        console.log(
+          "PHASE SOURCE",
+          "source: new round started",
+          `roundStartedAt: ${started.roundStartedAt}`,
+          `roundEndsAt: ${started.roundEndsAt}`,
+        );
 
         setRoundStartedAt(
           new Date(
@@ -377,6 +390,9 @@ export function useMeeting() {
    * 06:00–12:00 Sharing Stories
    * 12:00–18:00 Discovering Values
    * 18:00–20:00 Reflection
+   * 
+   * The stage is DERIVED from elapsed time,
+   * not stored in local state.
    */
   useEffect(() => {
     if (!roundStartedAt) {
@@ -413,11 +429,21 @@ export function useMeeting() {
       /**
        * Stage changed according to
        * authoritative elapsed time.
+       * 
+       * DO NOT mutate session here.
+       * Just trigger transition animations.
        */
       if (
         derivedStage.id !==
         session.currentStageId
       ) {
+        console.log(
+          "PHASE ADVANCE",
+          `from: ${session.currentStageId}`,
+          `to: ${derivedStage.id}`,
+          `elapsed: ${elapsedSeconds}s`,
+        );
+
         const previousStage =
           getCurrentStage(
             session.currentStageId,
@@ -429,6 +455,11 @@ export function useMeeting() {
           );
         }
 
+        /**
+         * Update ONLY the session reference
+         * for other parts of the code that read it.
+         * Do NOT add session to dependencies.
+         */
         const updatedSession:
           MeetingSession = {
           ...session,
@@ -436,16 +467,16 @@ export function useMeeting() {
             derivedStage.id,
         };
 
-        setTransitionState(
-          "transitioning",
-        );
-
         updateSession(
           updatedSession,
         );
 
         setSession(
           updatedSession,
+        );
+
+        setTransitionState(
+          "transitioning",
         );
 
         window.setTimeout(() => {
@@ -486,7 +517,6 @@ export function useMeeting() {
     };
   }, [
     roundStartedAt,
-    session,
     completeCurrentChapter,
   ]);
 
