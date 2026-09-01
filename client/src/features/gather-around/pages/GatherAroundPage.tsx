@@ -11,7 +11,7 @@ export function GatherAroundPage() {
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
         <PageEnter>
-          <section className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center text-center">
+          <section className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center py-12 text-center sm:py-16">
             <Heading>
               Gather around.
             </Heading>
@@ -23,7 +23,7 @@ export function GatherAroundPage() {
 
             <Button
               variant="ghost"
-              className="mt-10"
+              className="mt-8 sm:mt-10"
               onClick={() => navigate("/tabletopics")}
             >
               Ready
