@@ -66,10 +66,10 @@ export function EventReadyPage() {
     <main className="min-h-screen bg-[#07111f] text-white">
       <Container>
         <PageEnter>
-          <section className="flex min-h-screen flex-col items-center justify-center py-16">
-            <div className="w-full max-w-md space-y-8 text-center">
+          <section className="flex min-h-screen flex-col items-center justify-center py-12 sm:py-16">
+            <div className="w-full max-w-md space-y-6 text-center sm:space-y-8">
               {/* Success heading */}
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <Heading>Event ready</Heading>
                 <Text className="text-lg font-medium text-white/90">
                   {event.name}
@@ -80,10 +80,10 @@ export function EventReadyPage() {
               </div>
 
               {/* QR Code */}
-              <div className="mx-auto w-fit rounded-2xl bg-white p-6">
+              <div className="mx-auto w-fit rounded-2xl bg-white p-4 sm:p-6">
                 <QRCodeSVG
                   value={joinUrl}
-                  size={200}
+                  size={Math.min(200, window.innerWidth - 120)}
                   level="M"
                   includeMargin={false}
                 />
@@ -92,15 +92,15 @@ export function EventReadyPage() {
               {/* Event code display */}
               <div className="space-y-2">
                 <Text className="text-sm text-white/40">Event code</Text>
-                <div className="rounded-xl border border-white/10 bg-white/5 px-6 py-4">
-                  <Text className="font-mono text-2xl font-semibold tracking-wider">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 sm:px-6 sm:py-4">
+                  <Text className="font-mono text-xl font-semibold tracking-wider sm:text-2xl">
                     {event.code}
                   </Text>
                 </div>
               </div>
 
               {/* Action buttons */}
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 <Button
                   variant="ghost"
                   className="w-full"
@@ -132,7 +132,7 @@ export function EventReadyPage() {
               </div>
 
               {/* Continue to participation choice */}
-              <div className="pt-4">
+              <div className="pt-2 sm:pt-4">
                 <Button className="w-full" onClick={handleContinue}>
                   Continue
                 </Button>

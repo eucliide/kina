@@ -28,7 +28,7 @@ export function CreateForm({
           }
           placeholder="Friday Dinner"
           className="
-            h-12
+            h-11
             w-full
             rounded-xl
             border
@@ -37,6 +37,7 @@ export function CreateForm({
             px-4
             text-white
             placeholder:text-white/40
+            sm:h-12
           "
         />
       </div>
