@@ -87,7 +87,7 @@ export function TableTopicsPage() {
       setLoading(true);
       setError(false);
 
-      const nextPrompt = await getTableTopicsPrompt();
+      const nextPrompt = await getTableTopicsPrompt(participants.length);
       setPrompt(nextPrompt);
       setNudgedParticipant(pickNextReader(participantsRef.current));
     } catch (err) {
