@@ -17,7 +17,7 @@ export function ConversationCard({
   transitioning,
 }: ConversationCardProps) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur sm:p-10">
+    <section className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:p-8 lg:p-10">
       {/* PROGRESS — chapter label advances forward */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -32,7 +32,7 @@ export function ConversationCard({
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-8 min-h-[140px] flex items-center justify-center">
+      <div className="mt-6 min-h-[120px] flex items-center justify-center sm:mt-8 sm:min-h-[140px]">
         <AnimatePresence mode="wait">
           {transitioning ? (
             /* TRANSITION — brief pause between chapters */
@@ -55,7 +55,7 @@ export function ConversationCard({
               animate="visible"
               exit="exit"
             >
-              <Text className="text-xl leading-relaxed text-white sm:text-2xl">
+              <Text className="text-lg leading-relaxed text-white sm:text-xl lg:text-2xl">
                 {question}
               </Text>
             </motion.div>

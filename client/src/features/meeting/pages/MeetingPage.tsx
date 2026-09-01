@@ -90,7 +90,7 @@ export function MeetingPage() {
 
     const timeout = window.setTimeout(() => {
       setShowArrival(false);
-    }, 1800);
+    }, 1600);
 
     return () => {
       window.clearTimeout(timeout);
@@ -122,21 +122,25 @@ export function MeetingPage() {
 
     const timeout = window.setTimeout(() => {
       setShowStamp(false);
-    }, 1200);
+    }, 1000);
 
     return () => {
       window.clearTimeout(timeout);
     };
   }, [
     transitionState,
-    passport.currentChapter,
+    passport?.currentChapter,
   ]);
 
   /*
    * Load the participant's secret mission.
+   * This loads independently and should not block the meeting experience.
    */
   useEffect(() => {
-    if (!event || !participant) {
+    const eventId = event?.id;
+    const participantId = participant?.id;
+
+    if (!eventId || !participantId) {
       return;
     }
 
@@ -145,8 +149,8 @@ export function MeetingPage() {
     async function loadMission() {
       try {
         const mission = await getExistingMission(
-          event!.id,
-          participant!.id,
+          eventId,
+          participantId,
         );
 
         if (!cancelled && mission) {
@@ -165,7 +169,7 @@ export function MeetingPage() {
     return () => {
       cancelled = true;
     };
-  }, [event, participant]);
+  }, [event?.id, participant?.id]);
 
   /*
    * Session is required to enter a meeting.
@@ -253,7 +257,7 @@ export function MeetingPage() {
 
       <Container>
         <motion.section
-          className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center"
+          className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center py-12 sm:py-16"
           variants={listContainer}
           initial="hidden"
           animate="visible"
@@ -283,7 +287,7 @@ export function MeetingPage() {
           {/* Conversation passport */}
           <motion.div
             variants={listItem}
-            className="mb-6"
+            className="mb-4 sm:mb-6"
           >
             <ConversationPassportCard
               rotation={passport.rotation}
@@ -335,7 +339,7 @@ export function MeetingPage() {
         </motion.section>
 
         {/* Quiet controls */}
-        <div className="fixed bottom-6 right-6 flex gap-3">
+        <div className="fixed bottom-4 right-4 flex gap-2 sm:bottom-6 sm:right-6 sm:gap-3">
           {missionText && (
             <button
               type="button"
@@ -347,7 +351,7 @@ export function MeetingPage() {
             >
               <Eye className="h-3.5 w-3.5" />
 
-              <span>My mission</span>
+              <span className="hidden sm:inline">My mission</span>
             </button>
           )}
 

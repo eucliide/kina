@@ -13,12 +13,12 @@ export function MeetingTimer({
   const critical = remainingSeconds <= 10;
 
   return (
-    <div className="mt-8 text-center">
+    <div className="mt-6 text-center sm:mt-8">
       <Label>Time remaining</Label>
 
       <p
         className={[
-          "mt-2 text-3xl font-light tabular-nums transition-colors duration-300",
+          "mt-2 text-2xl font-light tabular-nums transition-colors duration-300 sm:text-3xl",
           critical
             ? "text-white"
             : warning
