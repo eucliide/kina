@@ -27,7 +27,7 @@ export interface WnrsPromptResult {
 }
 
 /**
- * Returns the shared Conversation Journey
+ * Returns a random Conversation Journey
  * prompt for the current partner rotation
  * and stage.
  *
@@ -59,12 +59,7 @@ export async function getConversationPrompt(
       partnerRotation,
     )
     .eq("stage_id", stageId)
-    .eq("is_active", true)
-    .order("prompt_order", {
-      ascending: true,
-    })
-    .limit(1)
-    .maybeSingle();
+    .eq("is_active", true);
 
   if (error) {
     throw new Error(
@@ -72,12 +67,19 @@ export async function getConversationPrompt(
     );
   }
 
-  if (!data) {
+  if (!data || data.length === 0) {
     return undefined;
   }
 
-  const prompt =
-    data as DatabaseConversationPrompt;
+  const prompts =
+    data as DatabaseConversationPrompt[];
+
+  // Randomly select one prompt from the available options
+  const randomIndex = Math.floor(
+    Math.random() * prompts.length,
+  );
+
+  const prompt = prompts[randomIndex];
 
   return {
     id: prompt.id,
