@@ -23,6 +23,8 @@ export function ReflectionPage() {
               max-w-2xl
               flex-col
               justify-center
+              py-12
+              sm:py-16
             "
           >
             <ReflectionCard
