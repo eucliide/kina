@@ -103,12 +103,17 @@ export function MeetingPage() {
    * A completed chapter produces a short
    * full-screen passport stamp before the
    * next chapter becomes visible.
+   * 
+   * Only fires when transitionState becomes "transitioning".
+   * Does not retrigger when passport updates - we capture
+   * the passport state at transition time, not reactively.
    */
   useEffect(() => {
-    if (
-      transitionState !== "transitioning" ||
-      !passport
-    ) {
+    if (transitionState !== "transitioning") {
+      return;
+    }
+
+    if (!passport) {
       return;
     }
 
@@ -127,10 +132,8 @@ export function MeetingPage() {
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [
-    transitionState,
-    passport?.currentChapter,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transitionState]);
 
   /*
    * Load the participant's secret mission.
