@@ -1,4 +1,5 @@
 import {
+import {
   useEffect,
   useState,
 } from "react";
@@ -41,6 +42,11 @@ import {
 } from "@/features/event/services/meetingRoundService";
 
 import { supabase } from "@/lib/supabase";
+
+import {
+  playWarningSound,
+  playCountdownSound,
+} from "../services/sounds";
 
 import type { MeetingSession } from "../types";
 
@@ -687,14 +693,10 @@ export function useMeeting() {
    * ------------------------------------------------
    */
   useEffect(() => {
-    if (
-      remainingSeconds === 60 ||
-      remainingSeconds === 10
-    ) {
-      console.log(
-        "Meeting sound:",
-        remainingSeconds,
-      );
+    if (remainingSeconds === 60) {
+      playWarningSound();
+    } else if (remainingSeconds === 10) {
+      playCountdownSound();
     }
   }, [
     remainingSeconds,
