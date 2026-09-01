@@ -660,9 +660,7 @@ export function useMeeting() {
           return;
         }
 
-        window.setTimeout(() => {
-          navigate("/lobby");
-        }, 1200);
+        navigate("/lobby");
       });
 
       return;
@@ -671,9 +669,7 @@ export function useMeeting() {
     /**
      * Entire Conversation Journey complete.
      */
-    window.setTimeout(() => {
-      navigate("/wnrs");
-    }, 1200);
+    navigate("/wnrs");
   }, [
     event?.id,
     roundEndsAt,
