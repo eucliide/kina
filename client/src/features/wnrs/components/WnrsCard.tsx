@@ -14,7 +14,7 @@ export function WnrsCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center"
+      className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center sm:p-8"
     >
       <Label>One last thing</Label>
 
@@ -28,8 +28,8 @@ export function WnrsCard({
         other person space to share.
       </Text>
 
-      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 px-8 py-7">
-        <Text className="text-lg leading-relaxed text-white">
+      <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 px-6 py-6 sm:mt-8 sm:px-8 sm:py-7">
+        <Text className="text-base leading-relaxed text-white sm:text-lg">
           {prompt}
         </Text>
       </div>
