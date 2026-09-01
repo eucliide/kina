@@ -1,23 +1,10 @@
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  AnimatePresence,
-  motion,
-} from "framer-motion";
-
-import {
-  Info,
-  Eye,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Info, Eye } from "lucide-react";
 
 import { Container } from "@/components/layout";
 
-import {
-  TOTAL_PARTNER_ROTATIONS,
-} from "@/features/event/constants/event";
+import { TOTAL_PARTNER_ROTATIONS } from "@/features/event/constants/event";
 
 import {
   ConversationPassportCard,
@@ -30,9 +17,7 @@ import {
   getJoinedParticipant,
 } from "@/features/join/services/joinSession";
 
-import {
-  getExistingMission,
-} from "@/features/mission/services/getMission";
+import { getExistingMission } from "@/features/mission/services/getMission";
 
 import {
   ConversationCard,
@@ -42,26 +27,14 @@ import {
   PartnerAwayNotice,
 } from "../components";
 
-import {
-  MeetupDetails,
-} from "../components/MeetupDetails";
+import { MeetupDetails } from "../components/MeetupDetails";
 
-import {
-  MissionQuickView,
-} from "@/features/mission/components/MissionQuickView";
+import { MissionQuickView } from "@/features/mission/components/MissionQuickView";
 
-import {
-  useMeeting,
-} from "../hooks/useMeeting";
+import { useMeeting } from "../hooks/useMeeting";
+import { usePartnerPresence } from "../hooks/usePartnerPresence";
 
-import {
-  usePartnerPresence,
-} from "../hooks/usePartnerPresence";
-
-import {
-  listContainer,
-  listItem,
-} from "@/lib/motion";
+import { listContainer, listItem } from "@/lib/motion";
 
 export function MeetingPage() {
   const {
@@ -75,51 +48,28 @@ export function MeetingPage() {
     remainingSeconds,
   } = useMeeting();
 
-  const [
-    showMeetupDetails,
-    setShowMeetupDetails,
-  ] = useState(false);
+  const [showMeetupDetails, setShowMeetupDetails] =
+    useState(false);
 
-  const [
-    showMission,
-    setShowMission,
-  ] = useState(false);
+  const [showMission, setShowMission] =
+    useState(false);
 
-  const [
-    missionText,
-    setMissionText,
-  ] = useState<string | null>(
-    null,
-  );
+  const [missionText, setMissionText] =
+    useState<string | null>(null);
 
-  const [
-    showArrival,
-    setShowArrival,
-  ] = useState(
-    Boolean(session),
-  );
+  const [showArrival, setShowArrival] =
+    useState(true);
 
-  const [
-    showStamp,
-    setShowStamp,
-  ] = useState(false);
+  const [showStamp, setShowStamp] =
+    useState(false);
 
-  const [
-    stampedChapter,
-    setStampedChapter,
-  ] = useState<number | null>(
-    null,
-  );
+  const [stampedChapter, setStampedChapter] =
+    useState<number | null>(null);
 
-  const event =
-    getJoinedEvent();
+  const event = getJoinedEvent();
+  const participant = getJoinedParticipant();
 
-  const participant =
-    getJoinedParticipant();
-
-  const {
-    isPartnerOnline,
-  } =
+  const { isPartnerOnline } =
     usePartnerPresence(
       event?.id ?? "",
       session?.participant.id ?? "",
@@ -127,47 +77,100 @@ export function MeetingPage() {
     );
 
   /*
-   * --------------------------------------------------------------------------
-   * PARTNER ARRIVAL
-   * --------------------------------------------------------------------------
+   * Partner arrival scene.
    *
-   * Maximum scene duration: 1.8 seconds.
+   * Runs once whenever a new partner rotation begins.
    */
-
   useEffect(() => {
     if (!session) {
       return;
     }
 
-    setShowArrival(
-      true,
-    );
+    setShowArrival(true);
 
-    const timeout =
-      window.setTimeout(
-        () => {
-          setShowArrival(
-            false,
-          );
-        },
-        1800,
-      );
+    const timeout = window.setTimeout(() => {
+      setShowArrival(false);
+    }, 1600);
 
     return () => {
-      window.clearTimeout(
-        timeout,
-      );
+      window.clearTimeout(timeout);
+    };
+  }, [session.partnerRotation]);
+
+  /*
+   * Passport stamp scene.
+   *
+   * A completed chapter produces a short
+   * full-screen passport stamp before the
+   * next chapter becomes visible.
+   */
+  useEffect(() => {
+    if (
+      transitionState !== "transitioning" ||
+      !passport
+    ) {
+      return;
+    }
+
+    const completedChapter = Math.max(
+      1,
+      passport.currentChapter - 1,
+    );
+
+    setStampedChapter(completedChapter);
+    setShowStamp(true);
+
+    const timeout = window.setTimeout(() => {
+      setShowStamp(false);
+    }, 1000);
+
+    return () => {
+      window.clearTimeout(timeout);
     };
   }, [
-    session.partnerRotation,
+    transitionState,
+    passport?.currentChapter,
   ]);
 
+  /*
+   * Load the participant's secret mission.
+   * This loads independently and should not block the meeting experience.
+   */
+  useEffect(() => {
+    const eventId = event?.id;
+    const participantId = participant?.id;
+
+    if (!eventId || !participantId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadMission() {
+      try {
+        const mission = await getExistingMission(
+          eventId,
+          participantId,
+        );
+
+        if (!cancelled && mission) {
+          setMissionText(mission.text);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load mission:",
+          error,
+        );
+      }
   /*
    * --------------------------------------------------------------------------
    * PASSPORT STAMP
    * --------------------------------------------------------------------------
    *
    * Maximum scene duration: 1.2 seconds.
+   * 
+   * Shows when transitioning between stages.
+   * Must not retrigger when passport updates during non-transition.
    */
 
   useEffect(() => {
@@ -205,7 +208,7 @@ export function MeetingPage() {
             false,
           );
         },
-        1200,
+        2500,
       );
 
     return () => {
@@ -215,103 +218,10 @@ export function MeetingPage() {
     };
   }, [
     transitionState,
-    passport.currentChapter,
-  ]);
-
-  /*
-   * --------------------------------------------------------------------------
-   * LOAD SECRET MISSION
-   * --------------------------------------------------------------------------
+    passport?.currentChapter,
+  ]);Keep the page defensive even though the meeting
+   * hook should provide a valid stage.
    */
-
-  useEffect(() => {
-    if (
-      !event ||
-      !participant
-    ) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadMission() {
-      try {
-        const mission =
-          await getExistingMission(
-            event!.id,
-            participant!.id,
-          );
-
-        if (
-          !cancelled &&
-          mission
-        ) {
-          setMissionText(
-            mission.text,
-          );
-        }
-      } catch (error) {
-        console.error(
-          "Failed to load mission:",
-          error,
-        );
-      }
-    }
-
-    loadMission();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    event,
-    participant,
-  ]);
-
-  /*
-   * --------------------------------------------------------------------------
-   * DEFENSIVE STATES
-   * --------------------------------------------------------------------------
-   */
-
-  if (!session) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07111f] text-white">
-        <div className="text-center">
-          <p className="text-white/60">
-            No active meeting session.
-          </p>
-
-          <a
-            href="/lobby"
-            className="mt-4 inline-block text-sm text-white/40 transition-colors hover:text-white/70"
-          >
-            Return to lobby
-          </a>
-        </div>
-      </main>
-    );
-  }
-
-  if (!event) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07111f] text-white">
-        <div className="text-center">
-          <p className="text-white/60">
-            Event not found.
-          </p>
-
-          <a
-            href="/"
-            className="mt-4 inline-block text-sm text-white/40 transition-colors hover:text-white/70"
-          >
-            Return home
-          </a>
-        </div>
-      </main>
-    );
-  }
-
   if (!currentStage) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#07111f] text-white">
@@ -326,62 +236,37 @@ export function MeetingPage() {
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
-      {/*
-       * Partner arrival scene.
-       *
-       * AnimatePresence is intentionally separate from
-       * the meeting content so the scene can disappear
-       * cleanly without remounting the entire page.
-       */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showArrival && (
           <EnvelopeArrivalScene
             key={`arrival-${session.partnerRotation}`}
-            partnerName={
-              session.participant.name
-            }
-            rotation={
-              session.partnerRotation
+            partnerName={session.participant.name}
+            rotation={session.partnerRotation}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {showStamp && stampedChapter !== null && (
+          <PassportStampScene
+            key={`stamp-${session.partnerRotation}-${stampedChapter}`}
+            chapter={stampedChapter}
+            chapterTitle={
+              currentStage.title
             }
           />
         )}
       </AnimatePresence>
 
-      {/*
-       * Passport stamp scene.
-       *
-       * This is deliberately short. It is a visual
-       * acknowledgement of progress, not another phase.
-       */}
-      <AnimatePresence>
-        {showStamp &&
-          stampedChapter !== null && (
-            <PassportStampScene
-              key={`stamp-${session.partnerRotation}-${stampedChapter}`}
-              chapter={
-                stampedChapter
-              }
-              chapterTitle={
-                currentStage.title
-              }
-            />
-          )}
-      </AnimatePresence>
-
       <Container>
         <motion.section
           className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center"
-          variants={
-            listContainer
-          }
+          variants={listContainer}
           initial="hidden"
           animate="visible"
         >
-          <motion.div
-            variants={
-              listItem
-            }
-          >
+          {/* Partner heading */}
+          <motion.div variants={listItem}>
             <MeetingHeader
               partnerName={
                 session.participant.name
@@ -389,16 +274,12 @@ export function MeetingPage() {
             />
           </motion.div>
 
-          <motion.div
-            variants={
-              listItem
-            }
-          >
+          {/* Partner presence */}
+          <motion.div variants={listItem}>
             <PartnerAwayNotice
               isVisible={
                 !isPartnerOnline &&
-                state ===
-                  "meeting"
+                state === "meeting"
               }
               partnerName={
                 session.participant.name
@@ -406,16 +287,13 @@ export function MeetingPage() {
             />
           </motion.div>
 
+          {/* Conversation passport */}
           <motion.div
-            variants={
-              listItem
-            }
+            variants={listItem}
             className="mb-6"
           >
             <ConversationPassportCard
-              rotation={
-                passport.rotation
-              }
+              rotation={passport.rotation}
               totalRotations={
                 TOTAL_PARTNER_ROTATIONS
               }
@@ -428,13 +306,9 @@ export function MeetingPage() {
             />
           </motion.div>
 
-          <motion.div
-            variants={
-              listItem
-            }
-          >
-            {state ===
-            "meeting" ? (
+          {/* Conversation */}
+          <motion.div variants={listItem}>
+            {state === "meeting" ? (
               <ConversationCard
                 chapter={
                   currentStage.chapter
@@ -456,15 +330,10 @@ export function MeetingPage() {
             )}
           </motion.div>
 
-          <motion.div
-            variants={
-              listItem
-            }
-          >
+          {/* Timer */}
+          <motion.div variants={listItem}>
             <MeetingTimer
-              time={
-                remainingTime
-              }
+              time={remainingTime}
               remainingSeconds={
                 remainingSeconds
               }
@@ -472,35 +341,27 @@ export function MeetingPage() {
           </motion.div>
         </motion.section>
 
-        {/*
-         * Quiet controls.
-         */}
+        {/* Quiet controls */}
         <div className="fixed bottom-6 right-6 flex gap-3">
           {missionText && (
             <button
               type="button"
               onClick={() =>
-                setShowMission(
-                  true,
-                )
+                setShowMission(true)
               }
               className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-white/60 backdrop-blur transition-colors hover:bg-black/60 hover:text-white/80"
               aria-label="View my mission"
             >
               <Eye className="h-3.5 w-3.5" />
 
-              <span>
-                My mission
-              </span>
+              <span>My mission</span>
             </button>
           )}
 
           <button
             type="button"
             onClick={() =>
-              setShowMeetupDetails(
-                true,
-              )
+              setShowMeetupDetails(true)
             }
             className="rounded-lg border border-white/10 bg-black/40 p-2 text-white/60 backdrop-blur transition-colors hover:bg-black/60 hover:text-white/80"
             aria-label="Meetup details"
@@ -510,34 +371,22 @@ export function MeetingPage() {
         </div>
       </Container>
 
+      {/* Meetup details */}
       <MeetupDetails
-        gatheringName={
-          event.name
-        }
-        eventCode={
-          event.code
-        }
-        isOpen={
-          showMeetupDetails
-        }
+        gatheringName={event.name}
+        eventCode={event.code}
+        isOpen={showMeetupDetails}
         onClose={() =>
-          setShowMeetupDetails(
-            false,
-          )
+          setShowMeetupDetails(false)
         }
       />
 
+      {/* Secret mission */}
       <MissionQuickView
-        missionText={
-          missionText
-        }
-        isOpen={
-          showMission
-        }
+        missionText={missionText}
+        isOpen={showMission}
         onClose={() =>
-          setShowMission(
-            false,
-          )
+          setShowMission(false)
         }
       />
     </main>
