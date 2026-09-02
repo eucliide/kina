@@ -107,7 +107,10 @@ export function MeetingPage() {
    * Only fires when transitionState becomes "transitioning".
    * Does not retrigger when passport updates - we capture
    * the passport state at transition time, not reactively.
+   * 
+   * TEMPORARILY DISABLED - needs refined ease in/out animations
    */
+  /*
   useEffect(() => {
     if (transitionState !== "transitioning") {
       return;
@@ -134,6 +137,7 @@ export function MeetingPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transitionState]);
+  */
 
   /*
    * Load the participant's secret mission.
@@ -202,6 +206,8 @@ export function MeetingPage() {
         )}
       </AnimatePresence>
 
+      {/* PASSPORT STAMP TEMPORARILY DISABLED - needs refined ease in/out animations */}
+      {/*
       <AnimatePresence mode="wait">
         {showStamp && stampedChapter !== null && (
           <PassportStampScene
@@ -213,6 +219,7 @@ export function MeetingPage() {
           />
         )}
       </AnimatePresence>
+      */}
 
       <Container>
         <motion.section
