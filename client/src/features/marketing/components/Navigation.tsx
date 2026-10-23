@@ -7,7 +7,7 @@ export function Navigation() {
       <Container>
         <nav className="flex h-20 items-center">
           <a href="/">
-            <KinaLogo className="h-8 w-auto" />
+            <KinaLogo className="h-14 w-auto" />
           </a>
         </nav>
       </Container>
