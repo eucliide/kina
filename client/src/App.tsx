@@ -2,6 +2,25 @@ import { MarketingPage } from "@/features/marketing/pages/MarketingPage";
 import { TransitionPlayer } from "@/features/transition/components/TransitionPlayer";
 import { useTransitionCoordinator } from "@/features/transition/hooks/useTransitionCoordinator";
 import { useAnonymousAuth } from "@/features/auth/hooks/useAnonymousAuth";
+import { getSession } from "@/features/meeting/services/meetingSession";
+import { getJoinedEvent } from "@/features/join/services/joinSession";
+
+function formatActivityName(
+  activityId:
+    | string
+    | null
+    | undefined,
+) {
+  if (activityId === "conversationJourney") {
+    return "Conversation Journey";
+  }
+
+  if (activityId === "wnrs") {
+    return "WNRS";
+  }
+
+  return "Activity";
+}
 
 function App() {
   const { ready, error } =
@@ -11,6 +30,8 @@ function App() {
     transition,
     finishTransition,
   } = useTransitionCoordinator();
+  const session = getSession();
+  const joinedEvent = getJoinedEvent();
 
   if (error) {
     return (
@@ -37,9 +58,13 @@ function App() {
       <TransitionPlayer
         transition={transition}
         context={{
-          partnerName: "Kevin",
+          partnerName:
+            session?.participant.name ??
+            "Partner",
           activityName:
-            "Conversation Journey",
+            formatActivityName(
+              joinedEvent?.current_activity_id,
+            ),
         }}
         onFinished={finishTransition}
       />

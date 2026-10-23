@@ -1,127 +1,151 @@
 # Kina
 
-Helping people build meaningful friendships through guided, in-person conversations.
+Kina is a mobile-first, in-person conversation experience that helps participants meet, pair, and rotate through guided conversations with realtime coordination.
 
----
+## Key features
 
-## Vision
+- Event creation and join flow with event codes
+- Anonymous Supabase-authenticated sessions
+- Realtime lobby presence and invitations
+- Timed meeting stages with authoritative round timing
+- Conversation Journey prompts loaded from Supabase
+- Secret missions, WNRS reflection, Gather Around, and TableTopics stages
 
-Kina is a mobile-first web application that guides participants through structured meetup activities designed to encourage natural conversations while minimizing screen time.
+## Architecture overview
 
----
+- **Frontend:** React 19 + TypeScript + Vite
+- **Routing:** React Router (SPA)
+- **Data/Auth/Realtime:** Supabase (`@supabase/supabase-js`)
+- **Styling:** Tailwind CSS v4 + global stylesheet entry (`client/src/styles/globals.css`)
+- **Motion/UI:** framer-motion + lucide-react
 
-## Project Status
+### State boundaries
 
-Current Milestone
+- **Server-authoritative:** event round/timing and shared event data (Supabase)
+- **Persisted client session:** joined event/participant + local meeting session
+- **UI-derived:** stage countdown, transition presentation, view-only state
 
-Project Blueprint
+## Repository structure
 
-Status
+```text
+.
+├── client/                  # Web app (primary package)
+│   ├── src/app/             # Router and app shell
+│   ├── src/features/        # Feature-first modules
+│   ├── src/lib/             # Shared client libraries
+│   └── vercel.json          # SPA rewrite config
+├── database/
+│   └── migrations/          # SQL migrations and RPC setup
+└── docs/                    # Product/architecture docs
+```
 
-In Progress
+## Package management
 
----
+This repository uses a **single npm workspace root** (`package.json`) with `client/` as the application workspace.
 
-## Documentation
+- Install once at repository root.
+- Use root scripts (delegating to `client`) for day-to-day development.
 
-### Product
+## Prerequisites
 
-- Product Vision
-- Requirements
-- User Flows
-- Roadmap
+- Node.js 20+
+- npm 10+
+- Supabase project (URL + anon key)
 
-### Architecture
+## Environment variables
 
-- Information Architecture
-- System Architecture
-- Database Design
-- API Specification
-- Architecture Decisions
+Create `client/.env.local`:
 
-### Engineering
+```bash
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your_public_anon_key
+```
 
-- Design System
-- Development Standards
-- Coding Conventions
-- Testing Strategy
-- Deployment Strategy
+Never commit secrets. Use only public anon keys on the client.
 
----
+## Local setup
 
-## Technology Stack
+```bash
+git clone <repo-url>
+cd kina
+npm install
+npm run dev
+```
 
-Frontend
+Open the Vite URL shown in terminal.
 
-React
+## Commands
 
-TypeScript
+From repository root:
 
-Vite
+- `npm run dev` – start local dev server
+- `npm run build` – typecheck + production build
+- `npm run lint` – run ESLint
+- `npm run preview` – preview production build
+- `npm run format` – format files
+- `npm run format:check` – check formatting
 
-Tailwind CSS
+## Testing, typecheck, lint, build
 
-Backend
+Current repository scripts provide:
 
-Node.js
+- Typecheck via `tsc -b` inside `npm run build`
+- Lint via `npm run lint`
 
-Express
+There is no dedicated automated test script configured in `client/package.json` at this time.
 
-TypeScript
+## Supabase and database workflow
 
-Database
+Database SQL lives in `database/migrations/`, including round-management RPC setup used by meeting synchronization.
 
-Supabase PostgreSQL
+Typical flow:
 
-Realtime
+1. Apply migrations to your Supabase project.
+2. Ensure prompts, missions, and event tables contain required content.
+3. Run the app and verify realtime subscriptions in lobby/meeting flows.
 
-Supabase Realtime
+## Realtime and auth notes
 
-Deployment
+- Client bootstraps anonymous auth before entering app flows.
+- Lobby presence/invitation updates and meeting timing sync use Supabase Realtime channels.
+- Meeting rounds are initialized/read from authoritative event state and synchronized across reconnect/reload.
 
-Vercel
+## Deployment
 
-Render
+`client/vercel.json` includes SPA rewrites to `index.html`, indicating Vercel-compatible deployment for the frontend.
 
----
+High-level deployment steps:
 
-## Project Principles
+1. Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in hosting env vars.
+2. Build with `npm run build`.
+3. Deploy `client/` build output (Vite `dist/`) with SPA rewrites.
 
-- Documentation before implementation.
-- People before phones.
-- Server is the source of truth.
-- Calm, minimal interfaces.
-- One responsibility per module.
-- Mobile-first design.
+## Contributing
 
----
+1. Create a focused branch.
+2. Keep changes scoped and architectural boundaries clear.
+3. Run `npm run lint` and `npm run build` before opening/updating PRs.
+4. Document any known limitations or follow-ups in the PR.
 
-## Development Workflow
+## Troubleshooting
 
-Research
+- **“Missing Supabase environment variables.”**
+  - Confirm `client/.env.local` exists and includes both required `VITE_` variables.
+- **Prompt missing in meeting stage**
+  - Verify Supabase prompt rows exist for `activity_id=conversationJourney`, current rotation, and stage.
+- **Participants not updating in lobby**
+  - Check Supabase Realtime is enabled and channel subscriptions are healthy.
 
-↓
+## Security guidance
 
-Documentation
-
-↓
-
-Architecture
-
-↓
-
-Implementation
-
-↓
-
-Testing
-
-↓
-
-Deployment
-
----
+- Do not commit Supabase service-role keys or private tokens.
+- Keep all sensitive credentials in deployment/environment configuration.
+- Treat prompt/content tables as production data and manage changes via reviewed migrations/content ops.
 
 ## License
 
-MIT
+MIT (see repository licensing files/history).
+
+## Status
+
+Active development.
