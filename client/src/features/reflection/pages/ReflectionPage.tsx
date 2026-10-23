@@ -7,9 +7,14 @@ import { useReflection } from "../hooks/useReflection";
 
 export function ReflectionPage() {
   const {
-      partnerName,
-      continueToLobby,
+    partnerName,
+    hasSession,
+    continueToLobby,
   } = useReflection();
+
+  if (!hasSession) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">

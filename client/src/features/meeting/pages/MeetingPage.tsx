@@ -9,7 +9,6 @@ import { TOTAL_PARTNER_ROTATIONS } from "@/features/event/constants/event";
 import {
   ConversationPassportCard,
   EnvelopeArrivalScene,
-  PassportStampScene,
 } from "@/features/passport/components";
 
 import {
@@ -44,6 +43,7 @@ export function MeetingPage() {
     transitionState,
     currentStage,
     currentPrompt,
+    promptError,
     remainingTime,
     remainingSeconds,
   } = useMeeting();
@@ -59,12 +59,6 @@ export function MeetingPage() {
 
   const [showArrival, setShowArrival] =
     useState(true);
-
-  const [showStamp, setShowStamp] =
-    useState(false);
-
-  const [stampedChapter, setStampedChapter] =
-    useState<number | null>(null);
 
   const event = getJoinedEvent();
   const participant = getJoinedParticipant();
@@ -96,48 +90,6 @@ export function MeetingPage() {
       window.clearTimeout(timeout);
     };
   }, [session.partnerRotation]);
-
-  /*
-   * Passport stamp scene.
-   *
-   * A completed chapter produces a short
-   * full-screen passport stamp before the
-   * next chapter becomes visible.
-   * 
-   * Only fires when transitionState becomes "transitioning".
-   * Does not retrigger when passport updates - we capture
-   * the passport state at transition time, not reactively.
-   * 
-   * TEMPORARILY DISABLED - needs refined ease in/out animations
-   */
-  /*
-  useEffect(() => {
-    if (transitionState !== "transitioning") {
-      return;
-    }
-
-    if (!passport) {
-      return;
-    }
-
-    const completedChapter = Math.max(
-      1,
-      passport.currentChapter - 1,
-    );
-
-    setStampedChapter(completedChapter);
-    setShowStamp(true);
-
-    const timeout = window.setTimeout(() => {
-      setShowStamp(false);
-    }, 2500);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transitionState]);
-  */
 
   /*
    * Load the participant's secret mission.
@@ -206,21 +158,6 @@ export function MeetingPage() {
         )}
       </AnimatePresence>
 
-      {/* PASSPORT STAMP TEMPORARILY DISABLED - needs refined ease in/out animations */}
-      {/*
-      <AnimatePresence mode="wait">
-        {showStamp && stampedChapter !== null && (
-          <PassportStampScene
-            key={`stamp-${session.partnerRotation}-${stampedChapter}`}
-            chapter={stampedChapter}
-            chapterTitle={
-              currentStage.title
-            }
-          />
-        )}
-      </AnimatePresence>
-      */}
-
       <Container>
         <motion.section
           className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center"
@@ -281,6 +218,7 @@ export function MeetingPage() {
                 }
                 question={
                   currentPrompt?.text ??
+                  promptError ??
                   "Prompt unavailable."
                 }
                 transitioning={

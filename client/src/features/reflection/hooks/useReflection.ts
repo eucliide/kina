@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -10,11 +11,11 @@ export function useReflection() {
 
   const session = getSession();
 
-  if (!session) {
-    throw new Error(
-      "No completed meeting session.",
-    );
-  }
+  useEffect(() => {
+    if (!session) {
+      navigate("/lobby");
+    }
+  }, [navigate, session]);
 
   function continueToLobby() {
     clearSession();
@@ -24,7 +25,9 @@ export function useReflection() {
 
   return {
     partnerName:
-      session.participant.name,
+      session?.participant.name ??
+      "your partner",
+    hasSession: Boolean(session),
     continueToLobby,
   };
 }

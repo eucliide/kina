@@ -20,9 +20,18 @@ export function usePartnerPresence(
   partnerId: string,
   currentUserId: string
 ): { isPartnerOnline: boolean } {
-  const [isPartnerOnline, setIsPartnerOnline] = useState(true);
+  const [isPartnerOnline, setIsPartnerOnline] =
+    useState(false);
 
   useEffect(() => {
+    if (
+      !eventId ||
+      !partnerId ||
+      !currentUserId
+    ) {
+      return;
+    }
+
     const channelName = `meeting-presence:${eventId}`;
     
     const channel = supabase.channel(channelName, {
