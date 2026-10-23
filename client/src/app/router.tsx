@@ -1,6 +1,5 @@
 import {
   createBrowserRouter,
-  Navigate,
 } from "react-router-dom";
 
 import { AuthLayout } from "@/app/AuthLayout";
@@ -19,6 +18,7 @@ import { WnrsPage } from "@/features/wnrs/pages/WnrsPage";
 import { GatherAroundPage } from "@/features/gather-around/pages/GatherAroundPage";
 import { TableTopicsPage } from "@/features/tabletopics/pages/TableTopicsPage";
 import { SecretMissionPage } from "@/features/mission/pages/SecretMissionPage";
+import { ReflectionPage } from "@/features/reflection/pages/ReflectionPage";
 
 export const router = createBrowserRouter([
   {
@@ -91,7 +91,7 @@ export const router = createBrowserRouter([
 
       {
         path: "/reflection",
-        element: <Navigate to="/lobby" replace />,
+        element: <ReflectionPage />,
       },
     ],
   },

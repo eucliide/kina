@@ -7,6 +7,9 @@ import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 import {
   loadParticipants,
+  sendInvitation as sendInvitationRequest,
+  getParticipantById,
+  mapIncomingInvitation,
   acceptInvitation as acceptInvitationRequest,
   declineInvitation as declineInvitationRequest,
   cancelInvitation as cancelInvitationRequest,
@@ -41,13 +44,7 @@ interface IncomingInvitation {
 /**
  * Computes the next rotation number,
  * marks the current user as inConversation,
- * creates the meeting session, and starts
- * the event round if needed.
- *
- * Single source of truth for rotation
- * advancement — used by both the sender
- * (invitation accepted) and the receiver
- * (accept button).
+ * and creates the meeting session.
  */
 async function startConversation(
   eventId: string,
@@ -65,11 +62,6 @@ async function startConversation(
   await updatePresenceStatus(eventId, "inConversation");
 
   createSession(partner, nextRotation);
-  
-  // Initialize the round timing when starting a conversation
-  // This sets round_started_at and round_ends_at on the event
-  const { startRound } = await import("@/features/event/services/meetingRoundService");
-  await startRound(eventId, nextRotation);
 }
 
 export function useLobbyState() {
@@ -113,21 +105,17 @@ export function useLobbyState() {
       return;
     }
 
-    /*
-     * Restore presence to available
-     * whenever the lobby mounts
-     * (covers returning from a meeting).
-     */
     void updatePresenceStatus(
       event.id,
       "available",
     );
+    const eventId = event.id;
 
     async function fetchParticipants() {
       try {
         const loaded =
           await loadParticipants(
-            event!.id,
+            eventId,
           );
 
         setParticipants(loaded);
@@ -141,7 +129,7 @@ export function useLobbyState() {
     const participantChannel =
       supabase
         .channel(
-          `event-participants:${event.id}`,
+          `event-participants:${eventId}`,
         )
         .on(
           "postgres_changes",
@@ -150,7 +138,7 @@ export function useLobbyState() {
             schema: "public",
             table: "event_participants",
             filter:
-              `event_id=eq.${event.id}`,
+            `event_id=eq.${eventId}`,
           },
           () => {
             fetchParticipants();
@@ -172,57 +160,31 @@ export function useLobbyState() {
             filter:
               `receiver_id=eq.${currentParticipant.id}`,
           },
-          async (payload: RealtimePostgresChangesPayload<{
+          async (
+            payload: RealtimePostgresChangesPayload<{
               id: string;
               sender_id: string;
-              receiver_id: string;
-              status: string;
-            }>) => {
-            const invitation =
-              payload.new as {
-                id: string;
-                sender_id: string;
-                receiver_id: string;
-                status: string;
-              };
+              status: "pending" | "accepted" | "declined" | "cancelled";
+            }>,
+          ) => {
+            try {
+              const mapped = await mapIncomingInvitation(
+                payload.new as {
+                  id: string;
+                  sender_id: string;
+                  status: "pending" | "accepted" | "declined" | "cancelled";
+                },
+              );
 
-            if (
-              invitation.status !==
-              "pending"
-            ) {
-              return;
-            }
+              if (!mapped) {
+                return;
+              }
 
-            const {
-              data: sender,
-              error,
-            } = await supabase
-              .from(
-                "event_participants",
-              )
-              .select(
-                "display_name",
-              )
-              .eq(
-                "id",
-                invitation.sender_id,
-              )
-              .single();
-
-            if (error) {
+              setIncomingInvitation(mapped);
+              setState("received");
+            } catch (error) {
               console.error(error);
-              return;
             }
-
-            setIncomingInvitation({
-              id: invitation.id,
-              senderId:
-                invitation.sender_id,
-              senderName:
-                sender.display_name,
-            });
-
-            setState("received");
           },
         )
         .on(
@@ -234,18 +196,16 @@ export function useLobbyState() {
             filter:
               `sender_id=eq.${currentParticipant.id}`,
           },
-          async (payload: RealtimePostgresChangesPayload<{
-              id: string;
-              sender_id: string;
+          async (
+            payload: RealtimePostgresChangesPayload<{
               receiver_id: string;
-              status: string;
-            }>) => {
+              status: "pending" | "accepted" | "declined" | "cancelled";
+            }>,
+          ) => {
             const invitation =
               payload.new as {
-                id: string;
-                sender_id: string;
                 receiver_id: string;
-                status: string;
+                status: "pending" | "accepted" | "declined" | "cancelled";
               };
 
             if (
@@ -256,33 +216,14 @@ export function useLobbyState() {
             }
 
             try {
-              const {
-                data: partner,
-                error,
-              } = await supabase
-                .from(
-                  "event_participants",
-                )
-                .select(`
-                  id,
-                  display_name,
-                  presence_status
-                `)
-                .eq(
-                  "id",
-                  invitation.receiver_id,
-                )
-                .single();
-
-              if (error) {
-                throw error;
-              }
+              const partner = await getParticipantById(
+                invitation.receiver_id,
+              );
 
               await startConversation(
-                event!.id,
+                eventId,
                 {
-                  id: partner.id,
-                  name: partner.display_name,
+                  ...partner,
                   status: "inConversation",
                 },
               );
@@ -310,28 +251,20 @@ export function useLobbyState() {
     participant: Participant,
   ) {
     const event = getJoinedEvent();
-    const currentParticipant = getJoinedParticipant();
 
-    if (!event || !currentParticipant) {
-      console.error("No active event or participant.");
+    if (!event) {
+      console.error("No active event.");
       return;
     }
 
     try {
-      const { data, error } = await supabase
-        .from("event_invitations")
-        .insert({
-          event_id: event.id,
-          sender_id: currentParticipant.id,
-          receiver_id: participant.id,
-          status: "pending",
-        })
-        .select("id")
-        .single();
+      const invitationId =
+        await sendInvitationRequest(
+          event.id,
+          participant.id,
+        );
 
-      if (error) throw error;
-
-      setSentInvitationId(data.id);
+      setSentInvitationId(invitationId);
       setSelectedParticipant(participant.name);
       setState("sent");
     } catch (error) {
@@ -353,7 +286,14 @@ export function useLobbyState() {
     setState("available");
   }
 
-  function receiveInvitation() {
+  function receiveInvitation(
+    invitation?: IncomingInvitation,
+  ) {
+    if (!invitation) {
+      return;
+    }
+
+    setIncomingInvitation(invitation);
     setState("received");
   }
 
